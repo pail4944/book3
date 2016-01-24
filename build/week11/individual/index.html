@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+  <style>
+  ul li {
+      list-style-type: circle;
+      padding-left: 10px;
+      margin-left: 30px;
+  }
+  code {
+    border: 1px #ddd solid;
+  }
+  </style>
+</head>
+<body>
+  <div class="container flow-text">
+  <h1 id="week-11">Week 11</h1>
+<p>Analyze your online activity and share this data with the rest of the class.</p>
+<h2 id="firebase">Firebase</h2>
+<p>Go to <a href="https://www.firebase.com/">Firebase</a></p>
+<p>Set up your personal firebase using the following naming convention</p>
+<pre><code>[your-github-id]-bigdata-hci.firebaseIO.com
+</code></pre><p>for example</p>
+<pre><code>doubleshow-bigdata-hci.firebaseIO.com
+</code></pre><h2 id="zapier">Zapier</h2>
+<p>Use Zapier to connect <em>Trigger</em> associated with your online accounts with
+a Firebase <em>Action</em> to create a child record under</p>
+<pre><code>[your-github-id]-bigdata-hci.firebaseIO.com/events
+</code></pre><p>The online accounts include gmail, facebook, and anything you use regularly.</p>
+<p>For example, each time you receive a new email to your gmail account, you want
+to write the “date” to your Firebase. On Zapier’s interface, you should see
+something like this:</p>
+<p><img src="zapier.png" alt="zapier.png"></p>
+<p>After a few gmails events are detected, you want your Firebase control panel
+to look like this</p>
+<p><img src="firebase.png" alt="firebase.png"></p>
+<p>Also, the data should be accessible as <code>.JSON</code></p>
+<p><a href="http://doubleshow-bigdata-hci.firebaseIO.com/events.json">http://doubleshow-bigdata-hci.firebaseIO.com/events.json</a></p>
+<p>Note that you only want to write the timestamp (i.e., date). You don’t want to share other
+private information contained in your email.</p>
+<h2 id="questions-about-your-self">Questions about your self</h2>
+<p><strong>Due: Friday Nov. 6, 11:59pm</strong></p>
+<p>Come up with ten interesting questions about yourself. Write code to analyze
+the events stored in your own Firebase.</p>
+<p><a href="me.html">me.html</a></p>
+<h2 id="questions-about-the-class">Questions about the class</h2>
+<p><strong>Due: Friday Nov. 8, 11:59pm</strong></p>
+<p>Come up with ten interesting questions about yourself. Write code to analyze
+the events stored in everyone’s Firebase.</p>
+<p><a href="class.html">class.html</a></p>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

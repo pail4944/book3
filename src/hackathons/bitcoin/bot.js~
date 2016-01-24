@@ -1,0 +1,12 @@
+//
+// TODO: implement the logic to decide whether or not to make a trade
+//
+function decideWhetherOrNotToTrade(item){
+  console.log(item)
+
+  if(_.includes(item.tweet, 'game') || _.includes(item.tweet, 'fun')){
+  	return true
+  }
+  console.log(bank.currency)
+  return false 
+}

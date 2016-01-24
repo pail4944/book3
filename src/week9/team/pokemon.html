@@ -1,0 +1,94 @@
+<html>
+<head>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+    </style>
+    <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Pokemon</h1>
+
+    <section id="q1" class="question">
+        <h4>How many pokemons?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q2" class="question">
+        <h4>What is the avearge attack point?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q3" class="question">
+        <h4>What are all the names?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q4" class="question">
+        <h4>What is the name of the Pokemon with the highest attack point?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q5" class="question">
+        <h4>Which Pokemons are of the Grass type?</h4>
+        <div class="answer"></div>
+    </section>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+    <script>
+
+function solution1(data){
+    return data.length
+}
+
+function solution2(data){
+    return _.sum(_.pluck(data, 'Attack')) / data.length
+}
+
+function solution3(data){
+    return _.pluck(data, 'Name').join(', ')
+}
+
+function solution4(data){
+    return _.pluck(_.filter(data, {'Attack': _.max(_.pluck(data, 'Attack'))}), 'Name')
+}
+
+function solution5(data){
+    return _.pluck(_.filter(data, {'Type': 'GRASS'}), 'Name').join(", ")
+}
+
+function run(id, solutionFunc, data){
+    console.log('run solution for ' + id)
+    var answer = solutionFunc(data)
+    $(id).find('.answer').html(answer)
+}
+
+function loadDataThenRunSolutions(){
+    $.get({url: '/data/pokemon.small.json'})
+     .done(function(data){
+         console.log('got data', data)
+         run('#q1', solution1, data)
+         run('#q2', solution2, data)
+         run('#q3', solution3, data)
+         run('#q4', solution4, data)
+         run('#q5', solution5, data)
+     })
+     .fail(function(err){
+         console.error(err)
+     })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+
+</body>
+</html>

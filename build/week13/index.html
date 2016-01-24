@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+  <style>
+  ul li {
+      list-style-type: circle;
+      padding-left: 10px;
+      margin-left: 30px;
+  }
+  code {
+    border: 1px #ddd solid;
+  }
+  </style>
+</head>
+<body>
+  <div class="container flow-text">
+  <h1 id="week-13-learning-challenges">Week 13 - Learning Challenges</h1>
+<h1 id="team">Team</h1>
+<ul>
+<li><a href="TBA">Zayo - Part II</a></li>
+</ul>
+<h1 id="individual">Individual</h1>
+<h2 id="sonar-data">Sonar Data</h2>
+<p>Report: <a href="individual/sonar.html">sonar.html</a></p>
+<p>The development of this learning exercise is in collaboration with Dr.
+Carrie Bell, who is a fisheries acoustician working for CIRES, the
+Cooperative Institute for Research in Environmental Sciences.</p>
+<p>This dataset contains water column measurement data off the coast of New York.
+Your job is to help analyze and visualize this data, in doing so, getting a
+taste of what it is like to work with big data for science.</p>
+<p>You are given a small slice of the dataset for this exercise. This slice
+contains about 300 measurements. Each measurement is taken at a location
+with the GPS coordinate recorded.</p>
+<p>Five frequencies are used to understand different components of what’s in
+the water column. Lower frequencies (18 &amp; 38 kHz) have longer wavelengths and
+are better at identifying large targets (like fish - especially those with a
+swimbladder, an air filled sac used for buoyancy). Higher frequencies
+(120 &amp; 200 kHz) have shorter wavelengths and are better at identifying smaller
+targets like zooplankton - little tiny marine critters including shrimp and baby
+fish.</p>
+<p>At each measurement location, 1000 samples were taken. Each sample corresponds
+to a depth point between 0 to 2000 meters below the sea level. For example,
+the 500-th value corresponds to responses at 1000 meters deep.</p>
+<p>Sonar responses from these five frequencies are “fused” into a single value using
+the following coding scheme, where each frequency is mapped to a unique integer:</p>
+<ul>
+<li>18 kHz is mapped to 1</li>
+<li>38 kHz is mapped to 3</li>
+<li>70 kHz is mapped to 29</li>
+<li>120 kHz is mapped to 7</li>
+<li>200 kHz is mapped to 13</li>
+</ul>
+<p>And depending on which subset of these frequencies had responses at that location,
+the value would be the sum of the integers. For instance, if responses were
+recorded at 18kHz and 70kHz (not the others), the “fused” value would be 1+29=30.</p>
+<h2 id="deliverables">Deliverables</h2>
+<p>Your job is to develop a data analysis report <a href="individual/sonar.html">sonar.html</a> by
+implementing the code in <a href="individual/analysis.js">analysis.js</a>.</p>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

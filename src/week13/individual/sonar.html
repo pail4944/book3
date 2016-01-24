@@ -1,0 +1,173 @@
+<html>
+<head>
+  <title>Google Book Words</title>
+    <style>
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 50px;
+          left: 0px;
+          text-shadow: -2px 0 black, 0 2px black, 5px 0 black, 0 -2px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #DDD;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        .viz {
+          max-height: 500px;
+          width: 1000px;
+        }
+        .text {
+            min-height: 50px
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:300px">
+    <div class="parallax">
+      <img src="sonar.jpg">
+      <h1 id="title">What is in our ocean?
+        <div class="authors">by Parker Illig</div>
+      </h1>
+    </div>
+  </div>
+
+  <div id="viz">
+  </div>
+
+
+  <div class="section white container flow-text">
+      <div class="switch">
+        Source Code
+        <label>
+          <input type="checkbox">
+          <span class="lever"></span>
+        </label>
+      </div>
+
+      <div id="questions" class="collection">
+      </div>
+  </div>
+
+
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+  <script src="http://bigdatahci2015.github.io/data/js/geolib.js"></script>
+
+  <script src="./analysis.js"></script>
+
+  <script>
+
+function toggleSourecode(){
+  $('pre').each(function(){
+    if ($(this).height()){
+        $(this).attr('data-height', $(this).height())
+        $(this).height(0)
+    } else {
+      $(this).height($(this).attr('data-height'))
+    }
+  })
+}
+$('.switch input').click(toggleSourecode)
+
+function csv2jsonArray(rawdata){
+  console.log('converting csv to json array')
+  var lines = rawdata.trim().split('\n')
+
+  var fields = lines[0].split(', ')
+  var rows = _.rest(lines)
+  return _.map(rows, function(row){
+    var toks = row.split(', ')
+    var item = _.zipObject(fields, _.take(toks,13))
+    item.Samples = toks[13].split(',')
+    return item
+  })
+}
+
+var items
+$.ajax({url: 'https://big-data-hci-hackathon.firebaseapp.com/data/sonar/D20140726-T095443.csv'})
+// $.ajax({url: '../D20140726-T095443.csv'})
+ .done(function(rawdata){
+
+  items = csv2jsonArray(rawdata)
+  console.log('number of items loaded:', items.length)
+  console.log('first item:', items[0])
+
+  analyze()
+
+ })
+ .fail(function(err){
+     console.error(err)
+ })
+
+function ask(text, func){
+
+  // create an html element to display the answer
+  var id = func.name
+  var answerHtml = '<div class="collection-item" id="' + id + '">' +
+      '<h4>' + text + '</h4>' +
+      '<div class="text"></div>' +
+      '<div class="viz"></div>' +
+      '<div><pre><code>' + func.toString() + '</code></pre></div>' +
+    '</div>'
+  var answerElement = $(answerHtml)
+
+  // append to #quetions
+  $('#questions').append(answerElement)
+
+  // note: by using call(), we can bind the 'this' pointer to 'answerElement'
+  var text = func.call(answerElement, items)
+
+  answerElement.find('.text').text(text)
+}
+
+function heading(text){
+  $('#questions').append('<h2>' + text +  '</h2>')
+}
+
+// create a map and attach it to the HTML element 'el'
+// return the map object
+function createMap(el, pos, zoom){
+  var map = L.map(el).setView(pos, zoom)
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+      maxZoom: 18,
+      id: 'doubleshow.noeko77m',
+      accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWd5YjFrMm4wdmp6NjVtMHJlaTI0cGpsIn0.TTbnqetZpAMZmYXJ_NGZaA'
+  }).addTo(map)
+  map.touchZoom.disable()
+  map.doubleClickZoom.disable()
+  map.scrollWheelZoom.disable()
+  return map
+}
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

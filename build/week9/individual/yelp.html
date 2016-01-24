@@ -1,0 +1,266 @@
+<html>
+<head>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+    </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Yelp</h1>
+
+    <section id="q1" class="question">
+        <h4>How many businesses are in the city of Pittsburgh?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q2" class="question">
+        <h4>What is the distance (km) between Denver and Boulder?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q3" class="question">
+        <h4>What is the distance (km) between the two McDonald's in the city of Gilbert?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q4" class="question">
+        <h4>What is the geographical center of all the McDonald's in the city of Phoenix?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q5" class="question">
+        <h4>In Phoenix, are there more McDonald's or Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q6" class="question">
+        <h4>In Phoenix, which Starbucks has the most number of reviews?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q7" class="question">
+        <h4>In Phoenix, which McDonald's is closest to this most-reviewed Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q8" class="question">
+        <h4>In Phoenix, how many coffee shops are within 2km of this most-reviewed Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q9" class="question">
+        <h4>In Phoenix, which McDonald's is the furthest north, and which is the furthest south?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q10" class="question">
+        <h4>In Phoenix, which McDonald's has no Starbucks located within 5 kms?</h4>
+        <div class="answer"></div>
+    </section>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>    
+    <script src="http://pail4944.github.io/book3/js/geolib.js"></script>
+    <script>
+
+var items   // global scope (i.e., can be accessed in javascript console)
+
+function solution1(){
+    return _.filter(items,{'city':'Pittsburgh'}).length
+}
+
+function solution2(){
+    var c0 = {'latitude': 40.03, 'longitude': 105.25}   // Denver
+    var c1 = {'latitude': 39.74, 'longitude': 105.00}   // Boulder
+    return geolib.getDistance(c0,c1)/1000 + ' km'
+}
+
+function solution3(){
+    var businessesInGilbert = _.filter(items, function(d){
+		return (d.city =='Gilbert') && (d.name == "McDonald's")
+	})
+	var mcd = _.map(businessesInGilbert, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+    return geolib.getDistance(mcd[0], mcd[1])/1000 + ' km'
+}
+
+function solution4(){
+    var mcd = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "McDonald's")
+	})
+	var mcd = _.map(mcd, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+	var avglat = (_.sum(mcd, 'latitude')) / mcd.length
+	var avglong = (_.sum(mcd, 'longitude')) / mcd.length
+	return (avglat + ", " + avglong)
+}
+
+function solution5(){
+    var mcds = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "McDonald's")
+	}).length
+	var stars = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "Starbucks")
+	}).length
+	console.log(mcds)
+	console.log(stars)
+	if (mcds > stars){
+		return "There are more McDonald's"
+	}
+	else{
+		return "There are more Starbucks"
+	}
+}
+
+function solution6(){
+    var stars = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "Starbucks")
+	})
+	stars = _.sortBy(stars, function(d){
+		return d.review_count
+	}).reverse()
+	return stars[0].full_address
+}
+
+function solution7(){
+    var stars = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "Starbucks")
+	})
+	stars = _.sortBy(stars, function(d){
+		return d.review_count
+	}).reverse()
+	stars = _.map(stars, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+	stars = stars[0]
+	var mcds = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "McDonald's")
+	})
+	mcds = _.map(mcds, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+	var result = _.sortBy(mcds, function(d){
+		return geolib.getDistance(d, stars)
+	}).reverse()
+	result = result[0]
+	return result.latitude + ', ' + result.longitude 
+}
+
+function solution8(){
+    var stars = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "Starbucks")
+	})
+	stars = _.sortBy(stars, function(d){
+		return d.review_count
+	}).reverse()
+	stars = _.map(stars, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+	stars = stars[0]
+	var coffee = _.filter(items, function(d){
+		return (d.city =='Phoenix') && _.includes(d.categories, 'Coffee & Tea')
+	})
+	coffee = _.map(coffee, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude}
+	})
+	var result = _.filter(coffee, function(d){
+		return (geolib.getDistance(d, stars) / 1000) <= 2
+	})
+	return result.length
+}
+
+function solution9(){
+    var mcds = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "McDonald's")
+	})
+	mcds = _.map(mcds, function(d){
+		return {'latitude': d.latitude, 'longitude': d.longitude, 'address': d.full_address}
+	})
+	mcds = _.sortBy(mcds, 'latitude')
+	return 'Southmost: ' + mcds[0].address + ', Northmost: ' + mcds[mcds.length - 1].address + '' 
+}
+
+function solution10(){
+	var stars = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "Starbucks")
+	})
+	var mcds = _.filter(items, function(d){
+		return (d.city =='Phoenix') && (d.name == "McDonald's")
+	})
+	console.log(stars)
+	console.log(mcds)
+	var distances = _.map(mcds, function(d) {
+		mcdcoord = {'latitude': d.latitude, 'longitude': d.longitude}
+        return _.map(stars, function(f) {
+            starcoord = {'latitude': f.latitude, 'longitude': f.longitude}
+			var distance = geolib.getDistance(mcdcoord, starcoord)/1000
+            return { 'address': d.full_address, 'distance': distance }
+        })
+    })
+	console.log(distances)
+	var mindistance = _.map(distances, function(d) {
+        var distance = _.min(_.pluck(d, 'distance'))
+        var address = _.unique(_.pluck(d, 'address'))
+        return { 'address': address, 'distance': distance }
+    })
+	console.log(mindistance)
+	var result = _.filter(mindistance, function(d) {
+        return d.distance > 5.00
+    })
+	console.log(result)
+	result = _.map(result, function(d){
+		return d.address
+	})
+	console.log(result)
+	return result.join(', ')
+}
+
+function run(id, solutionFunc, data){
+    console.log('run solution for ' + id)
+    var answer = solutionFunc(data)
+    $(id).find('.answer').html(answer)
+}
+
+function loadDataThenRunSolutions(){
+    $.get({url: 'http://bigdatahci2015.github.io/data/yelp/yelp_academic_dataset_business.5000.json.lines.txt'})
+     .done(function(data){
+         var lines = data.trim().split('\n')
+
+         // convert text lines to json arrays and save them in `items`
+         items = _.map(lines, JSON.parse)
+
+         console.log('number of items loaded:', items.length)
+         console.log('first item', items[0])
+
+         run('#q1', solution1, items)
+         run('#q2', solution2, items)
+         run('#q3', solution3, items)
+         run('#q4', solution4, items)
+         run('#q5', solution5, items)
+         run('#q6', solution6, items)
+         run('#q7', solution7, items)
+         run('#q8', solution8, items)
+         run('#q9', solution9, items)
+         run('#q10', solution10, items)
+     })
+     .fail(function(err){
+         console.error(err)
+     })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+
+</body>
+</html>

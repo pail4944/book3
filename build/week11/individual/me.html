@@ -1,0 +1,168 @@
+<html>
+<head>
+  <title>Me</title>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 50px;
+          left: 0px;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #BBB;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #tweets {
+          min-height: 300px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:300px">
+    <div class="parallax">
+      <img src="cloud.jpg">
+      <h1 id="title">What is my online activity?
+        <div class="authors">by Parker Illig</div>
+      </h1>
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+      <div id="questions" class="col s10 collection">
+      </div>
+  </div>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script>
+
+// TODO: replace the FIREBAW_URL with your own
+var PERSONAL_FIREBASE_URL = 'https://pail4944-bigdata-hci.firebaseio.com/'
+
+// add the personal firebase url to the class's firebase
+
+// load events from the personal firebase
+var personal_firebase = new Firebase(PERSONAL_FIREBASE_URL)
+personal_firebase
+  .child('events')
+  .on('value', function(snapshot){
+    var events = snapshot.val()
+    analyze(events)
+})
+
+function ask(func, events){
+  var answer = func(events)
+
+  // html element to display the answer
+  var answerHtml = '<div class="collection-item answer">' +
+      '<h4>' + _.startCase(func.name) + '? </h4>' +
+      '<div>' + answer + '</div>'
+    '</div>'
+
+  // append to #quetions
+  $('#questions').append(answerHtml)
+}
+
+function analyze(events){
+  console.log(events)
+
+  ask(when_did_i_start_collecting, events)
+  ask(how_many_emails_have_i_received_since, events)
+  ask(how_many_emails_did_i_get_on_november_5th, events)
+  ask(how_many_topics_have_been_started_on_r_games, events)
+  ask(how_many_topics_on_reddit_have_been_about_fallout_4, events)
+  ask(how_many_times_has_kripp_streamed_since, events)
+  ask(how_many_youtube_videos_has_kripp_uploaded, events)
+  ask(how_many_of_those_videos_are_about_hearthstone, events)
+  ask(how_many_posts_to_the_class_forum, events)
+  ask(who_posted_to_the_forum, events)
+  ask(how_many_commits_have_I_pushed_since, events)
+  ask(what_did_i_commit, events)
+}
+
+function when_did_i_start_collecting(events){
+  return 'I started collecting from '+ _.values(events.gmail)[0].date + '.'
+}
+
+function how_many_emails_have_i_received_since(events){
+  return 'I have received ' + _.values(events.gmail).length + ' emails.'
+}
+
+function how_many_emails_did_i_get_on_november_5th(events){
+  var length = _.filter(_.values(events.gmail), function(d){
+      return _.includes(d.date, '5 Nov') 
+  }).length
+  return 'I received ' + length + ' emails on November 5th.'
+}
+
+function how_many_topics_have_been_started_on_r_games(events){
+  return 'There have been ' + _.values(events.reddit).length + ' hot topics started on r/Games since.'
+}
+
+function how_many_times_has_kripp_streamed_since(events){
+  return 'Kripp has tweeted his stream ' + _.values(events.twitter.kripp).length + ' times since.'
+}
+
+function how_many_topics_on_reddit_have_been_about_fallout_4(events){
+  var fallout = _.filter(_.values(events.reddit), function(d){
+    return _.includes(d.Topic, 'Fallout')
+  })
+  return 'There have been ' + fallout.length + ' topics on Fallout 4 since.'
+}
+
+function how_many_youtube_videos_has_kripp_uploaded(events){
+  return 'Kripp has uploaded ' + _.values(events.youtube.kripp).length + ' videos since.'
+}
+
+function how_many_of_those_videos_are_about_hearthstone(events){
+  var hearth = _.filter(_.values(events.youtube.kripp), function(d){
+    return _.includes(d.video, 'Hearthstone')
+  })
+  return hearth.length + ' video(s) have been about Hearthstone since.'
+}
+
+function how_many_posts_to_the_class_forum(events){
+  return 'There have been ' + _.values(events.gmail.forum).length + ' posts to the forum since.'
+}
+
+function who_posted_to_the_forum(events){
+  return _.uniq(_.pluck(_.values(events.gmail.forum), 'name')).join(', ')
+}
+
+function how_many_commits_have_I_pushed_since(events){
+  return 'I have committed ' + _.values(events.github.commits).length + ' time(s) since.'
+}
+
+function what_did_i_commit(events){
+  return _.pluck(_.values(events.github.commits), 'commit').join(', ')
+}
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

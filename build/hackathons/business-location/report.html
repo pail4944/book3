@@ -1,0 +1,317 @@
+<html>
+<head>
+    <style>
+        .map {
+          min-height: 300px
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Where should we build a day-care center?</h1>
+
+    <section id="candidates" class="question">
+        <h4>Where are the six candidate locations?</h4>
+        <div class="map"></div>
+    </section>
+
+    <h2>Scores</h2>
+    <section id="features">
+    </section>
+
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+    <script src="http://bigdatahci2015.github.io/data/js/geolib.js"></script>
+
+    <script>
+
+//
+// Candidate Locations
+//
+
+function getCandidateLocations(){
+  var locations = []
+  locations.push({latitude: 33.45, longitude: -112.03})
+  locations.push({latitude: 33.45, longitude: -112.04})
+  locations.push({latitude: 33.45, longitude: -112.05})
+  locations.push({latitude: 33.45, longitude: -112.06})
+  locations.push({latitude: 33.45, longitude: -112.07})
+  locations.push({latitude: 33.45, longitude: -112.08})
+  return locations
+}
+
+
+//
+// Scoring Functions
+//
+
+
+function has_starbucks_within_one_mile(loc){
+
+    // get businesses within 1 mile radius
+    var nearbyBusinesses = _.filter(items, function(item){
+    var loc2  = _.pick(item, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+        return geolib.convertUnit('mi', d) < 1
+    })
+
+    var hasAtLeastOneStarbucks = _.some(nearbyBusinesses, function (business) {
+        return business.name.match(/Starbucks/)
+    })
+    // console.log('hasAtLeastOneStarbucks', hasAtLeastOneStarbucks)
+
+    return hasAtLeastOneStarbucks
+}
+
+function has_doctor_within_one_mile(loc){
+    // get businesses within 1 mile radius
+    var nearbyBusinesses = _.filter(items, function(item){
+    var loc2  = _.pick(item, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+        return geolib.convertUnit('mi', d) < 1
+    })
+
+    var doctorInPhoenix = _.filter(nearbyBusinesses, function(d) {
+        return _.some(d.categories, function(c) {
+            return ( _.includes(c, 'Doctor') || _.includes(c, 'doctor') )
+        })
+    })
+    // console.log('doctorInPhoenix', doctorInPhoenix)
+
+    return doctorInPhoenix
+}
+
+function few_Restaurants_within_one_mile(loc){
+    var rest_num = _.chain(items)
+        .filter(function(obj) {
+            return (1 > geolib.getDistance(loc,
+                        {'latitude': obj.latitude,
+                        'longitude':obj.longitude}) / 1000)
+        }).filter(function(obj) { return (obj.categories.indexOf('Restaurants') > -1) })
+        .value().length
+    return rest_num <= 5
+}
+
+function no_bars_within_one_mile(loc){
+    var bar_num = _.chain(items)
+        .filter(function(obj) {
+            return (1 > geolib.getDistance(loc,
+                        {'latitude': obj.latitude,
+                        'longitude':obj.longitude}) / 1000)
+        }).filter(function(obj) {
+            // console.log(obj.categories)
+            return (_.reduce(obj.categories, function(p, n) {
+                return (p || (n.indexOf('bar') > -1) || (n.indexOf('Bar') > -1))
+            }, false))
+        })
+        .value().length
+    return bar_num == 0
+}
+
+function has_zoo_within_five_miles(loc){
+  var zoos = _.filter(items, function(d){
+    return _.includes(d.categories, 'Zoos')
+  })
+  var nearbyzoos = _.filter(zoos, function(d){
+    var loc2 = _.pick(d, ['latitude', 'longitude'])
+    var dis = geolib.getDistance(loc, loc2) 
+    return geolib.convertUnit('mi', dis) < 5 
+  })
+  return nearbyzoos.length >= 1
+}
+
+function has_no_adult_entertainment_within_1_mile(loc){
+  var adult = _.filter(items, function(d){
+    return _.includes(d.categories, 'Adult Entertainment')
+  })
+  var nearbyadult = _.filter(adult, function(d){
+    var loc2 = _.pick(d, ['latitude', 'longitude'])
+    var dis = geolib.getDistance(loc, loc2)
+    return geolib.convertUnit('mi', dis) < 1
+  })
+  return nearbyadult.length == 0
+}
+
+function has_at_least_one_museum_within_a_mile(loc){
+  var nearbyBusinesses = _.filter(items, function(item){
+    var loc2  = _.pick(item, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+    return geolib.convertUnit('mi', d) < 1
+  })
+
+  var hasAtLeastOneNearbyMuseum = _.some(nearbyBusinesses, function (business){
+    return _.includes(business.categories, "Museums")
+  })
+  
+  return hasAtLeastOneNearbyMuseum
+}
+
+function has_Urgent_Care_within_a_mile(loc){
+  var nearbyBusinesses = _.filter(items, function(item){
+    var loc2  = _.pick(item, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+    return geolib.convertUnit('mi', d) < 1
+  })
+
+  var hasAtLeastOneUrgentCare = _.some(nearbyBusinesses, function (business){
+    return _.includes(business.categories, "Urgent Care")
+  })
+  
+  return hasAtLeastOneUrgentCare
+
+}
+
+function No_rehab_centers_within_4_miles(loc){
+  var rehab = _.filter(items, function(d){
+    return _.includes(d.categories, 'Rehabilitation Center')
+  })
+  var nearbyrehab = _.filter(rehab, function(d){
+    var loc2 = _.pick(d, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+    return geolib.convertUnit('mi', d) < 4
+  })
+  return nearbyrehab.length == 0
+}
+
+
+function Health_Markets_within_1_mile(loc){
+  var health = _.filter(items, function(d){
+    return _.includes(d.categories, 'Health Markets')
+  })
+  var nearbyhealth = _.filter(health, function(d){
+    var loc2 = _.pick(d, ['latitude', 'longitude'])
+    var d = geolib.getDistance(loc, loc2)
+    return geolib.convertUnit('mi', d) < 1
+  })
+  return nearbyhealth.length >= 1
+}
+
+
+//
+// Compute a score for a location using the provided scoring function 'scoreFunc'
+// and visualization function 'vizFunc'
+//
+function scoreAndVisualize(locs, scoreFunc, vizFunc){
+
+  console.time('scoring ' + scoreFunc.name)
+  var scores = _.map(locs, scoreFunc)
+  console.timeEnd('scoring ' + scoreFunc.name)
+
+  var title = _.startCase(scoreFunc.name)
+  var section = $('<section><h4>' + title + '</h4><div class="map"></div></section>').appendTo('#features')
+  var mapElement = $(section).find('.map')[0]
+  vizFunc(mapElement, locs, scores)
+}
+
+//
+// Visualization Functions
+//
+
+// visualize a list of locations on a map
+function visualize(domElement, locs){
+    var map = L.map(domElement).setView([33.45, -112.06], 13)
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'doubleshow.noeko77m',
+        accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWZ5Y3B1eTE1MHRidWRtMG9uZXluajg4In0.u5ONW27Ly5cU7M5KYi6Y9Q'
+    }).addTo(map)
+    map.touchZoom.disable()
+    map.doubleClickZoom.disable()
+    map.scrollWheelZoom.disable()
+
+    _.forEach(locs, function(loc){
+      var latlng = [loc.latitude, loc.longitude]
+      var circle = L.circle(latlng, 10, {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.5
+      }).addTo(map);
+    })
+}
+
+// visualize a list of locations on a map
+// represent each location's score using green (TRUE) or red (FALSE)
+function visualize_true_or_false(domElement, locs, scores){
+    var map = L.map(domElement).setView([33.45, -112.06], 13)
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'doubleshow.noeko77m',
+        accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWZ5Y3B1eTE1MHRidWRtMG9uZXluajg4In0.u5ONW27Ly5cU7M5KYi6Y9Q'
+    }).addTo(map)
+    map.touchZoom.disable()
+    map.doubleClickZoom.disable()
+    map.scrollWheelZoom.disable()
+
+    _.forEach(locs, function(loc, i){
+
+      var latlng = [loc.latitude, loc.longitude]
+      var score = scores[i]
+
+      var color
+      if (score){
+        color = 'green'
+      } else {
+        color = 'red'
+      }
+      var circle = L.circle(latlng, 50, {
+          color: color,
+          fillColor: '#f03',
+          fillOpacity: 1
+      }).addTo(map);
+    })
+}
+
+var items = []
+function loadDataThenRunSolutions(){
+
+  var locs = getCandidateLocations()
+  visualize($('#candidates .map')[0], locs)
+
+  $.get({url: 'http://bigdatahci2015.github.io/data/yelp/yelp_academic_dataset_business.phoenix.json.lines.txt'})
+   .done(function(data){
+      var lines = data.trim().split('\n')
+
+      // convert text lines to json arrays and save them in `items`
+      items = _.map(lines, JSON.parse)
+
+      // take only the last 2000 to speed up computation
+      // TODO: comment this out before the final submission
+      // items = _.takeRight(items, 2000)
+
+      console.log('number of items loaded:', items.length)
+      console.log('first item:', items[0])
+
+      console.log('scoring all candidate locations')
+
+    
+      scoreAndVisualize(locs, has_starbucks_within_one_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_doctor_within_one_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, few_Restaurants_within_one_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, no_bars_within_one_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_zoo_within_five_miles, visualize_true_or_false)
+      scoreAndVisualize(locs, has_no_adult_entertainment_within_1_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_at_least_one_museum_within_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_Urgent_Care_within_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, No_rehab_centers_within_4_miles, visualize_true_or_false)
+      scoreAndVisualize(locs, Health_Markets_within_1_mile, visualize_true_or_false)
+
+   })
+   .fail(function(err){
+       console.error(err)
+   })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+</body>
+</html>

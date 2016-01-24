@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+  <style>
+  ul li {
+      list-style-type: circle;
+      padding-left: 10px;
+      margin-left: 30px;
+  }
+  code {
+    border: 1px #ddd solid;
+  }
+  </style>
+</head>
+<body>
+  <div class="container flow-text">
+  <h1 id="hackathon-business-locations">Hackathon - Business Locations</h1>
+<p>You are approached by a business developer to get advice on where to build a
+new store in Phoenix, AZ. There are currently six candidates. Use the Yelp
+dataset and come up with your own scoring scheme to identify the best location
+to recommend.</p>
+<h2 id="report">Report</h2>
+<p><a href="report.html">Read the Report</a></p>
+<h2 id="business-types">Business Types</h2>
+<p>As a team, choose one of the following business types to work on:</p>
+<ul>
+<li>A new full-service daycare center</li>
+<li>A new full-service car wash</li>
+<li>A new 24-hours gym</li>
+<li>A new 24-hours diner</li>
+<li>A new swimming pool</li>
+<li>A new organic food store</li>
+<li>A new sushi buffet</li>
+</ul>
+<h2 id="scoring-method">Scoring Method</h2>
+<p>For this hackathon, you will use a scoring method that is based on a series of
+20 Yes/No questions that can be applied to each candidate location. The candidate
+location that has the most number of Yes’s is the most viable location.</p>
+<p>Each Yes/No question generally should take on the form of</p>
+<p>  <em>Does the location have X nearby?</em></p>
+<p>where X is a feature that you think would be useful for the business to be viable.</p>
+<p>Two examples of such questions are:</p>
+<ol>
+<li>Does the location have <em>at least one McDonald’s within one mile</em>?</li>
+<li>Does the location have <em>at least ten businesses with 100 or more reviews within one mile</em>?</li>
+</ol>
+<h2 id="coding">Coding</h2>
+<p>Implement scoring functions and visualize how these candidate locations are
+scored. The skeleton code is provided for you in <a href="report.html">report.html</a>.</p>
+<h2 id="grading">Grading</h2>
+<p>Each person must implement at least two questions to receive credits for this
+hackathon.</p>
+<h2 id="submissions">Submissions</h2>
+<h3 id="business-type">Business Type</h3>
+<p>Our team chose to analyze candidate locations for (fill in the business type).</p>
+<h3 id="contributors">Contributors</h3>
+<p>The team members who contributed to this hackathon are:</p>
+<ul>
+<li><a href="http://github.com/willzfarmer">William Farmer</a></li>
+<li><a href="http://github.com/kevinkgifford">Kevin Gifford</a></li>
+<li><a href="http://github.com/pail4944">Parker Illig</a></li>
+<li><a href="http://github.com/DomoYeti">Robert Kendl</a></li>
+<li><a href="http://github.com/drewdinger">Andrew Krodinger</a></li>
+<li><a href="http://github.com/jraesly">John Raesly</a></li>
+</ul>
+<h3 id="20-questions">20 Questions</h3>
+<p>Our team came up with the following relevant questions:</p>
+<ol>
+<li><p>Are there any elementary schools within 2 km radius?? contributed by (<a href="http://github.com/pail4944">Parker Illig</a>)</p>
+<p>(one sentence justification why this question is important)</p>
+</li>
+<li><p>Are there any preschools within a 2 km radius?? contributed by (<a href="http://github.com/pail4944">Parker Illig</a>)</p>
+</li>
+<li><p>Are there any zoo’s in a 5 km radius?? contributed by (<a href="http://github.com/pail4944">Parker Illig</a>)</p>
+</li>
+<li><p>Are there any Adult entertainment stores nearby?? contributed by (<a href="http://github.com/pail4944">Parker Illig</a>)</p>
+</li>
+<li><p>Is there a Starbucks within 2 km?? contributed by (<a href="http://github.com/kevinkgifford">Kevin Gifford</a>)</p>
+</li>
+<li><p>Is there a doctors office within 2 km?? contributed by (<a href="http://github.com/kevinkgifford">Kevin Gifford</a>)</p>
+</li>
+<li><p>Is there a hospital within 5 km?? contributed by (<a href="http://github.com/kevinkgifford">Kevin Gifford</a>)</p>
+</li>
+<li><p>Is there a dentist office within 5 km?? contributed by (<a href="http://github.com/kevinkgifford">Kevin Gifford</a>)</p>
+</li>
+<li><p>Are their any dog walker’s within 5 km?? contributed by (<a href="http://github.com/kevinkgifford">Kevin Gifford</a>)</p>
+</li>
+<li><p>Are there any other daycare’s nearby?? contributed by (<a href="http://github.com/willzfarmer">William Farmer</a>)</p>
+</li>
+<li><p>Are there any diners nearby? (indicator of bad neighborhood?)? contributed by (<a href="http://github.com/willzfarmer">William Farmer</a>)</p>
+</li>
+<li><p>Are there any tattoo parlors nearby? (as above)? contributed by (<a href="http://github.com/willzfarmer">William Farmer</a>)</p>
+</li>
+<li><p>Are there any banks nearby? contributed by (<a href="http://github.com/willzfarmer">William Farmer</a>)</p>
+</li>
+<li><p>Any dive bars nearby.? contributed by (<a href="http://github.com/willzfarmer">William Farmer</a>)</p>
+</li>
+<li><p>Is there a rehabilitation center nearby?? contributed by (<a href="http://github.com/jraesly">John Raesly</a>)</p>
+</li>
+<li><p>Are there health stores nearby?? contributed by (<a href="http://github.com/jraesly">John Raesly</a>)</p>
+</li>
+<li><p>Is there children’s clothing nearby?? contributed by (<a href="http://github.com/jraesly">John Raesly</a>)</p>
+</li>
+<li><p>Are there any museums nearby?? contributed by (<a href="http://github.com/DomoYeti">Robert Kendl</a>)</p>
+</li>
+<li><p>Are there any cannabis clinics nearby?? contributed by (<a href="http://github.com/DomoYeti">Robert Kendl</a>)</p>
+</li>
+<li><p>Are there any urgent care facilities nearby?? contributed by (<a href="http://github.com/DomoYeti">Robert Kendl</a>)</p>
+</li>
+</ol>
+<h3 id="conclusion">Conclusion</h3>
+<p>1 = 2 = 3 (7 points) &gt; 6 (5 points) &gt; 4 = 5 (4 points)</p>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

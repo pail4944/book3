@@ -1,0 +1,271 @@
+<html>
+<head>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        .parallax-container {
+          height: 300
+        }
+        .popup {
+            width: 500;
+            height: 500;
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 100px;
+          left: 0px;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #BBB;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #map { height: 1000px; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+</head>
+<body>
+
+  <div class="parallax-container">
+    <div class="parallax">
+      <img src="nepal.jpg">
+      <h1 id="title">What are the patterns of image diffusion during the Nepal Earthquake?
+        <div class="authors">by William Farmer, Kevin Gifford, Parker Illig, Robert Kendl, John Raesly</div>
+      </h1>
+
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+
+      <div id="questions" class="collection with-header">
+          <div class="collection-header">Questions</div>
+          <section id="q1" class="question collection-item">
+              <h4>Can we plot the tweets?? (Will Farmer)</h4>
+              <div class="answer" id="map"></div>
+          </section>
+
+          <section id="q2" class="question collection-item">
+              <h4>What is the average follower count for each person that tweets with coordinates? What's the max follower count? (Represented by size of circle on Will's leaflet) (Parker Illig)</h4>
+              <div class="answer"></div>
+          </section>
+
+          <section id="q3" class="question collection-item">
+              <h4>How many tweets had "share location" enabled? How many users had "share location" enabled? Did any user enable "share location" in-between subsequent tweets? (Kevin Gifford)</h4>
+              <div class="answer"></div>
+          </section>
+
+          <section id="q4" class="question collection-item">
+              <h4>Out of all the tweets that gave coordinates, which ones were retweeted from another source? (Robert Kendl)</h4>
+              <div class="answer"></div>
+          </section>
+
+          <section id="q5" class="question collection-item">
+              <h4>Which tweets got retweeted the most by user? (John Raesly)</h4>
+              <div class="answer"></div>
+          </section>
+
+          <section id="q6" class="question collection-item">
+              <h4></h4>
+              <div class="answer"></div>
+          </section>
+      </div>
+
+  </div>
+
+  <div class="parallax-container" style="height:200px">
+    <div class="parallax">
+      <img src="nepal2.jpg">
+    </div>
+  </div>
+
+
+  <div class="section white container flow-text">
+    <div class="markdown">
+
+# Discussion
+
+We discovered that not many tweets out of the ~1400 data set have location sharing enabled. The ones that do tended to all be from Nepal and were moderately sized accounts. Kevin discovered a few of the accounts that shared location sent tweets before that did not have location sharing. We also saw that none of the tweets that used location sharing were classified as retweets, though that is more likely due to the dataset given to us and the fact that the coordinates were only linked to the original tweet. John did a more general question that found the most rewtweeted tweets out of the entire set, finding the top ten tweets to range from 207 to 37 retweets. 
+
+
+    </div>
+  </div>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+    <script src="http://bigdatahci2015.github.io/data/js/geolib.js"></script>
+    <script>
+
+var items   // global scope (i.e., can be accessed in javascript console)
+var map
+
+function solution1(){
+   _.chain(items)
+       .filter(function(obj) {
+           return (obj["Tweet Coords"] != "")
+       }).map(function(obj) {
+           var latlng = JSON.parse(obj["Tweet Coords"].replace(/'/g, '"'))["coordinates"]
+           latlng.reverse()
+           var circle = L.circle(latlng, obj["User Followers Count"] * 2, {
+               color: 'red',
+               fillColor: '#f03',
+               fillOpacity: 1
+           }).addTo(map);
+           // http://stackoverflow.com/questions/13002961/leaflet-different-hover-and-click-events
+           circle.on('mouseover', function(evt) {
+                 //evt.target is the marker that is being moused over 
+                 //bindPopup() does not need to be called here if it was already called
+                 //somewhere else for this marker.
+                 //evt.target.bindPopup('hi').openPopup();
+                evt.target.bindPopup(
+                    '<img class="popup" src="' + obj['Media Url'] + '" alt="' + obj['Image Id Str'] + '">'
+                ).openPopup()
+           });
+       }).value()
+}
+
+function solution2(){
+    var filtered = _.filter(items, function(d){
+        return d['Tweet Coords'] != ""
+    })
+    filtered = _.uniq(filtered, 'Image Id Str')
+    filtered = _.uniq(filtered, 'User Screen Name')
+    var groups = _.mapValues(filtered, function(d){
+      return d["User Followers Count"]
+    })
+    var pairs = _.pairs(groups)
+    pairs = _.sortBy(groups, function(d){
+      return d[1]
+    })
+    var max = _.take(pairs, 1)
+    var sum = _.sum(filtered, 'User Followers Count')
+    return 'The average follower count is ' + (sum)/(filtered.length) + ', and the max follower count is ' + max[0] + '.' 
+}
+
+function solution3(){// Kevin Gifford
+
+    var tweetsWithCoordinates = _.filter(items, function(d) {
+        return d['Tweet Coords'] != ""
+    })
+    var uniquetweetsWithCoordinates = _.unique(tweetsWithCoordinates, 'User Screen Name')
+    var string = ''
+    var evaluate = _.map(uniquetweetsWithCoordinates, function(d) {
+        var pTweets = _.filter(items, function(f) {
+            return d['User Screen Name'] == f['User Screen Name']
+        })
+        if (_.size(pTweets) > 1) {
+            var uniqueTweetTimestamp = d['* Tweet Created At']
+            var pTweetsTimestamp = _.map(pTweets, function(f) {
+                if (moment(d['* Tweet Created At']).isBefore(moment(f['* Tweet Created At']))) {
+                    // Found a tweet user that enabled location sharing 
+                    string += '\n ' + d['User Screen Name'] + ' first tweeted at ' + d['* Tweet Created At'] + ' then turned on Location Sharing in subsequent tweet at ' + f['* Tweet Created At'] + '! '
+                }
+            })
+        }
+    })
+    var groups = _.groupBy(tweetsWithCoordinates, 'User Screen Name')
+
+    var counts = _.mapValues(groups, function(d) {
+        return d.length
+    })
+    var string1 = 'RESULTS: ' + tweetsWithCoordinates.length + ' tweets had "share location" enabled;'
+    var string2 = '\n ' + _.size(counts) + ' unique users had "share location" enabled;'
+    return string1 + string2 + string
+}
+
+function solution4(){
+  var tweetsWithCoordinates = _.filter(items, function(d) {
+    return d['Tweet Coords'] != ""
+  })
+  var retweeted = _.filter(tweetsWithCoordinates, function(x){
+    return x['Rt'] == "Retweet"
+  })
+  return 'There was ' + retweeted.length + ' tweets that were retweets with location shared.'
+}
+
+function solution5(){
+  var user = _.groupBy(items, 'Original User Name')
+  var tweets =_.mapValues(user, function(d){
+   return d.length
+  })
+  sorted = _.sortByOrder(_.pairs(tweets),function(d){return d[1]},'desc')
+  sorted = _.take(sorted, 10)
+  return sorted.join(", ")
+}
+
+function solution6(){
+    return ''
+}
+
+function run(id, solutionFunc, data){
+    console.log('run solution for ' + id)
+    var answer = solutionFunc(data)
+    $(id).find('.answer').html(answer)
+}
+
+function loadDataThenRunSolutions(){
+  map = L.map('map').setView([27, 85], 6)
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+      maxZoom: 18,
+      id: 'doubleshow.noeko77m',
+      accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWZ5Y3B1eTE1MHRidWRtMG9uZXluajg4In0.u5ONW27Ly5cU7M5KYi6Y9Q'
+  }).addTo(map)
+  map.touchZoom.disable()
+  map.doubleClickZoom.disable()
+  map.scrollWheelZoom.disable()
+
+  $.get('http://bigdatahci2015.github.io/data/twitter/nepal_local_tweets.json')
+    .done(function(data){
+
+        items = data
+        console.log('number of items loaded:', items.length)
+        console.log('first item', items[0])
+
+       run('#q1', solution1, items)
+       run('#q2', solution2, items)
+       run('#q3', solution3, items)
+       run('#q4', solution4, items)
+       run('#q5', solution5, items)
+       run('#q6', solution6, items)
+     })
+     .fail(function(err){
+         console.error(err)
+     })
+}
+
+loadDataThenRunSolutions()
+
+// convert Markdown to html
+$('.markdown').each(function(){
+  var markdownText = $(this).text()
+  $(this).html(marked(markdownText))
+})
+
+// initialize the parallax effect
+$(document).ready(function(){
+  console.log($('.parallax').html())
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

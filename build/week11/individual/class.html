@@ -1,0 +1,278 @@
+<html>
+<head>
+  <title>Me</title>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 50px;
+          left: 0px;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #BBB;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #tweets {
+          min-height: 300px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:300px">
+    <div class="parallax">
+      <img src="cloud.jpg">
+      <h1 id="title">What is everyone in the class's activity?
+        <div class="authors">by Parker Illig</div>
+      </h1>
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+      <div id="questions" class="col s10 collection">
+      </div>
+  </div>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script>
+
+// TODO: replace the FIREBAW_URL with your own
+var CLASS_FORKS = 'https://big-data-hci-hackathon.firebaseio.com/book3/forks'
+
+// add the personal firebase url to the class's firebase
+
+new Firebase(CLASS_FORKS)
+  .once('value', function(snapshot){
+    var forks  = snapshot.val()
+
+    _.forEach(forks, function(fork){
+      var individual_github_name = fork.owner.login
+      var individual_firebase_url = 'https://' + individual_github_name + '-bigdata-hci.firebaseio.com'
+      console.log('firebase url', individual_firebase_url)
+
+      new Firebase(individual_firebase_url)
+        .child('events')
+        .once('value', function(snapshot){
+          var events = snapshot.val()
+
+          handle_individual_events(individual_github_name, events)
+
+        }, function(err){
+          console.error(err)
+        })
+
+    })
+
+})
+
+// array to collect event data from all individuals
+var class_events = {}
+
+// initial call to analyze when the class_events are still empty
+analyze(class_events)
+
+// each time events data from an individual is received, this event handler is called
+function handle_individual_events(name, individual_events){
+
+  // use the me of the
+  class_events[name] = individual_events
+
+  console.log('loaded data from ' + _.values(class_events).length + ' individuals')
+
+  analyze(class_events)
+}
+
+var firstTime = true
+function ask(func, events){
+  var answer = func(events)
+
+  // html element to display the answer
+  var answerHtml = '<div class="collection-item answer">' +
+      '<h4>' + _.startCase(func.name) + '? </h4>' +
+      '<div>' + answer + '</div>'
+    '</div>'
+
+  // append to #quetions
+  $('#questions').append(answerHtml)
+}
+
+function analyze(events){
+  $('#questions').html('')
+
+  ask(how_many_individuals_analyzed_so_far, events)
+  ask(whose_data_is_available, events)
+  ask(what_apps_did_people_in_the_class_use, events)
+  ask(what_was_the_maximum_apps_used, events)
+  ask(what_were_the_average_number_of_apps_used, events)
+  ask(how_many_emails_has_the_class_had_since, events)
+  ask(how_many_emails_were_from_november_5th, events)
+  ask(who_got_the_most_emails, events)
+  ask(who_got_the_least, events)
+  ask(what_was_the_average_email_count, events)
+  ask(how_many_people_used_github, events)
+  ask(who_used_github, events)
+}
+
+function how_many_individuals_analyzed_so_far(events){
+  return _.keys(events).length
+}
+
+function whose_data_is_available(events){
+  return _.keys(events).join(' , ')
+}
+
+function what_apps_did_people_in_the_class_use(events){
+    var apps = []
+    _.forEach(events, function(d){
+        apps.push(_.keys(d))
+    })
+    apps = _.flatten(apps)
+    apps = _.filter(apps, function(d){
+      return !(_.includes(d, '-K'))
+    })
+    return _.uniq(apps).join(', ')
+}
+
+function what_was_the_maximum_apps_used(events){
+  var individuals = _.mapValues(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){ //some people didnt make a gmail filter so I want to make sure I don't count people's emails as apps
+      return _.size(d)
+    }
+  })
+  var pairs = _.pairs(individuals)
+  var sorted = _.sortBy(pairs, function(d){
+    return d[1]
+  }).reverse()
+  var filtered = _.filter(sorted, function(d){
+    return !(_.isUndefined(d[1]))
+  })
+  return filtered[0][0] + " had the most apps used with a total of " + filtered[0][1] + " apps."
+}
+
+function what_were_the_average_number_of_apps_used(events){
+  var sum = 0
+  _.forEach(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){
+      sum += _.size(d)
+    }
+  })
+  var length = _.filter(events, function(d){
+    return _.includes(_.keys(d), 'gmail')
+  }).length
+  return 'The average amount of apps used was ' + _.round(sum/length, 3) +'.'
+}
+
+function how_many_emails_has_the_class_had_since(events){
+  var sum = 0
+  _.forEach(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){
+      sum += _.size(d.gmail)
+    }
+  }) 
+  return sum
+}
+
+function how_many_emails_were_from_november_5th(events){
+  var sum = 0
+  _.forEach(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){
+      _.forEach(d.gmail, function(f){
+        if(_.includes(f.Date, '5 Nov') || _.includes(f.date, '5 Nov') || _.includes(f.email_date, '5 Nov')){
+          sum += 1
+        }
+      })
+    }
+  }) 
+  return sum
+}
+
+function who_got_the_most_emails(events){
+  var individuals = _.mapValues(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){
+      return _.size(d.gmail)
+    }
+  })
+  var pairs = _.pairs(individuals)
+  var sorted = _.sortBy(pairs, function(d){
+    return d[1]
+  }).reverse()
+  var filtered = _.filter(sorted, function(d){
+    return !(_.isUndefined(d[1]))
+  })
+  return filtered[0][0] + " had the most emails with a total of " + filtered[0][1] + " emails."
+}
+
+function who_got_the_least(events){
+  var individuals = _.mapValues(events, function(d){
+    if(_.includes(_.keys(d), 'gmail')){
+      return _.size(d.gmail)
+    }
+  })
+  var pairs = _.pairs(individuals)
+  var sorted = _.sortBy(pairs, function(d){
+    return d[1]
+  })
+  var filtered = _.filter(sorted, function(d){
+    return !(_.isUndefined(d[1]))
+  })
+  return filtered[0][0] + " had the least emails with a total of " + filtered[0][1] + " emails."
+}
+
+function what_was_the_average_email_count(events){
+  var sum = how_many_emails_has_the_class_had_since(events)
+  var length = _.filter(events, function(d){
+    return _.includes(_.keys(d), 'gmail')
+  }).length
+  return 'The average email count was ' + _.floor(sum/length) + ' emails.'
+}
+
+function how_many_people_used_github(events){
+  var sum = 0
+  _.forEach(events, function(d){
+    if(_.includes(_.keys(d), 'github')){
+      sum += 1
+    }
+  }) 
+  return sum
+}
+
+function who_used_github(events){
+  var pairs =_.pairs(events)
+  var people = []
+  _.forEach(pairs, function(d){
+    if (_.includes(_.keys(d[1]), 'github')){
+      people.push(d[0])
+    }
+  })
+  return people.join(', ')
+}
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

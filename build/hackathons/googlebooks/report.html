@@ -1,0 +1,190 @@
+<html>
+<head>
+  <title>Google Book Words</title>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 50px;
+          left: 0px;
+          text-shadow: -2px 0 black, 0 2px black, 5px 0 black, 0 -2px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #DDD;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #tweets {
+          min-height: 300px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:300px">
+    <div class="parallax">
+      <img src="http://res.cloudinary.com/craftml/image/upload/c_scale,e_brightness:-62,w_1000/v1447038536/books_nh4k05.jpg">
+      <h1 id="title">How did word usage change over time?
+        <div class="authors">by Parker Illig, Caleb Hsu, Satchel Spencer</div>
+      </h1>
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+      <div class="switch">
+        Source Code
+        <label>
+          <input type="checkbox">
+          <span class="lever"></span>
+        </label>
+      </div>
+
+      <div id="questions" class="col s10 collection">
+      </div>
+  </div>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>
+
+function toggleSourecode(){
+  $('pre').each(function(){
+    if ($(this).height()){
+        $(this).attr('data-height', $(this).height())
+        $(this).height(0)
+    } else {
+      $(this).height($(this).attr('data-height'))
+    }
+  })
+}
+$('.switch input').click(toggleSourecode)
+
+function csv2jsonArray(rawdata){
+  console.log('converting csv to json array')
+  var lines = rawdata.trim().split('\n')
+  var rows = _.rest(lines)
+  return _.map(rows, function(row){
+    var toks = row.split(',')
+    return {decade: toks[0], word: toks[1], rank: toks[2], count: toks[3]}
+    // TODO:
+    // return {decade:1900, word: 'the', count: 721149566}
+  })
+}
+
+var items
+$.ajax({url: 'https://big-data-hci-hackathon.firebaseapp.com/data/ngrams_10000.csv'})
+ .done(function(rawdata){
+
+  items = csv2jsonArray(rawdata)
+  console.log('number of items loaded:', items.length)
+  console.log('first item:', items[0])
+
+  analyze()
+
+ })
+ .fail(function(err){
+     console.error(err)
+ })
+
+function ask(text, func){
+  var answer = func(items)
+
+  // html element to display the answer
+  var answerHtml = '<div class="collection-item answer">' +
+      '<h4>' + text + '</h4>' +
+      '<div>' + answer + '</div>' +
+      '<pre><code>' + func.toString() + '</code></pre>' +
+    '</div>'
+
+  // append to #quetions
+  $('#questions').append(answerHtml)
+}
+
+function analyze(){
+  ask('How does the usage of countries frequently related to China politically (and geographically) differ between Chinese and English literature? (Caleb Hsu)', func1)
+  ask('How does the usage of major enemy and ally countries of the US change throughout time in American literature? (Parker Illig)', func2)
+  ask('What words have changed their spelling over time? (Satchel Spencer)', func3)
+  $('pre code').each(function(i, block) {
+    hljs.highlightBlock(block);
+  })
+  toggleSourecode()
+}
+
+function func1(){
+  return '<img src="/hackathons/googlebooks/chinese.png" />' + '<img src="/hackathons/googlebooks/english.png" />'
+}
+
+
+function func2(){
+  return '<img src="/hackathons/googlebooks/americanalliesandenemies.png" />'
+}
+
+
+function levenshtein(a, b){
+  if(!a.length) return b.length; 
+  if(!b.length) return a.length; 
+  var matrix = [];
+  for(i= 0;i<=b.length;i++) matrix[i] = [i];
+  for(j=0;j<=a.length;j++) matrix[0][j] = j;
+  for(i=1;i<=b.length;i++){
+    for(j=1;j<=a.length;j++){
+      if(b.charAt(i-1) == a.charAt(j-1)) matrix[i][j] = matrix[i-1][j-1];
+      else matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function func3(){
+  var newi = _.chain(items).filter(function(i){
+    return i.decade == '2000' && i.word.length > 5;
+  }).pluck('word').uniq().value();
+  
+  var old = _.chain(items).filter(function(i){
+    return parseInt(i.decade) == 1900 && i.word.length > 5;
+  }).pluck('word').uniq().value();
+
+  var newer = _.difference(newi, old)
+  var older = _.difference(old, newi);
+
+  var occ = _.chain(older).object().mapValues(function(u, oldWord){
+    return _.chain(newer).filter(function(newWord){
+      return levenshtein(oldWord, newWord) < 2;
+    }).take(5).value();
+  }).pairs().filter(function(p){
+    return p[1].length;
+  }).map(function(p){
+    return p[0]+' -> '+p[1][0];
+  }).value().join('<br>');
+  return occ;
+}
+
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

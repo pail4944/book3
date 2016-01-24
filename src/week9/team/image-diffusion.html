@@ -1,0 +1,221 @@
+<html>
+<head>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Image Diffusion Analysis</h1>
+
+    <section id="q1" class="question">
+        <h4>How many unique original images?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q2" class="question">
+        <h4>How many unique original tweet users?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q3" class="question">
+        <h4>How many times did image (592674938273865700) get retweeted?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q4" class="question">
+        <h4>Which image has the most number of retweets?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q5" class="question">
+        <h4>How many original tweets were there on 4/26/15?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q6" class="question">
+        <h4>Among these original tweets on 4/26/15, what is the most number of times one was retweeted?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q7" class="question">
+        <h4>Among these original tweets on 4/26/15, what is the average number of times one was retweeted?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q8" class="question">
+        <h4>Among these original tweets on 4/26/15, how many of them got retweeted within one hour?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q9" class="question">
+        <h4>Among these original tweets on 4/26/15, what are the ten most retweeted?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q10" class="question">
+        <h4>Among these ten most retweeted, how many of them contain images of people?</h4>
+        (hint: you will need to look at the photos yourself)
+        <div class="answer"></div>
+    </section>
+
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+
+    <script src="http://pail4944.github.io/book3/js/moment.min.js"></script>
+    <script>
+
+var items   // global scope (i.e., can be accessed in javascript console)
+
+function solution1(){
+    return _.uniq(items, 'Image Id Str').length
+}
+
+function solution2(){
+    return _.uniq(items, 'Original User Screen Name').length
+}
+
+function solution3(){
+    return _.filter(items, function(d){
+        return d['Image Id Str'] == 592674938273865700
+    }).length -1;
+}
+
+function solution4(){
+    var groups = _.groupBy(items, 'Image Id Str')
+    groups = _.mapValues(groups, function(d){
+        return d.length
+    })
+    groups = _.pairs(groups)
+    groups = _.sortBy(groups, function(d){
+        return d[1]
+    }).reverse()
+    var result =_.flatten(_.take(groups, 1))
+    console.log(result)
+    return result[0] + ", retweeted  "+ result[1] + " times."
+}
+
+function solution5(){
+    var groups = _.filter(items, function(d){
+        return d['* Tweet Created At'].startsWith('4/26/15')
+    })
+    groups = _.uniq(groups, 'Image Id Str')
+    return groups.length
+}
+
+function solution6(){
+    var groups = _.filter(items, function(d){
+        return d['* Tweet Created At'].startsWith('4/26/15')
+    })
+    groups = _.groupBy(groups, 'Image Id Str')
+    groups = _.mapValues(groups, function(d){
+        return d.length
+    })
+    var pairs = _.pairs(groups)
+    pairs = _.sortBy(pairs, function(d){
+        return d[1]
+    }).reverse()
+    var result = _.flatten(_.take(pairs,1))
+    return result[0] + ", retweeted " +result[1]+ " times"
+}
+
+function solution7(){
+   var res =  _.chain(items)
+            .map(function(obj) { return [obj['* Tweet Created At'], obj['Image Id Str']]; })
+            .filter(function(arr) { return arr[0].startsWith('4/26/15'); })
+            .map(function(arr) { return arr[1]; })
+            .groupBy(function(id) { return id })
+            .mapValues(function(arr) { return arr.length; })
+            .pairs()
+            .reduce(function(p, n) {
+                    return [p[0] + n[1], p[1] + 1];
+            }, [0, 0]).value();
+    return res[0] / res[1];
+}
+
+function solution8(){
+    var filtered = _.filter(items, function(d){
+        return _.includes(d['* Tweet Created At'], '4/26/15')
+    }) 
+    filtered = _.filter(filtered, function(d){
+        var hour = moment(d['* Original Tweet Created At']).add(1, 'hours')
+        return moment(hour).isBefore(d['*Tweet Created At']) == false
+    })
+    var momentCreatedAt = new Date(items[0]['* Tweet Created At'])
+
+    // hints: you may need to use these methods to get an one hour window
+    // http://momentjs.com/docs/#/durations/add/
+    // http://momentjs.com/docs/#/query/is-before/
+    console.log(momentCreatedAt)
+    return filtered.length
+}
+
+function solution9(){
+    var groups = _.filter(items, function(d){
+        return d['* Tweet Created At'].startsWith('4/26/15')
+    })
+    groups = _.groupBy(groups, 'Image Id Str')
+    groups = _.mapValues(groups, function(d){
+        return d.length
+    })
+    var pairs = _.pairs(groups)
+    pairs = _.sortBy(pairs, function(d){
+        return d[1]
+    }).reverse()
+    var result = _.take(pairs,10)
+    return _.map(result, function(d){
+        return d[0]
+    }).join(", ")
+}
+
+function solution10(){
+    return "4 total, 592139111860940800, 592149979889819600, 592346411963797500, 592285978557075500"
+}
+
+function run(id, solutionFunc, data){
+    console.log('run solution for ' + id)
+    var answer = solutionFunc(data)
+    $(id).find('.answer').html(answer)
+}
+
+function loadDataThenRunSolutions(){
+    $.get({url: './nepal_local_tweets.json'})
+     .done(function(data){
+        //  var lines = data.trim().split('\n')
+        items = data
+         // convert text lines to json arrays and save them in `items`
+        //  items = _.map(lines, JSON.parse)
+
+         console.log('number of items loaded:', items.length)
+         console.log('first item', items[0])
+
+         run('#q1', solution1, items)
+         run('#q2', solution2, items)
+         run('#q3', solution3, items)
+         run('#q4', solution4, items)
+         run('#q5', solution5, items)
+         run('#q6', solution6, items)
+         run('#q7', solution7, items)
+         run('#q8', solution8, items)
+         run('#q9', solution9, items)
+         run('#q10', solution10, items)
+     })
+     .fail(function(err){
+         console.error(err)
+     })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+
+</body>
+</html>
