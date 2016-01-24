@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+  <style>
+  ul li {
+      list-style-type: circle;
+      padding-left: 10px;
+      margin-left: 30px;
+  }
+  code {
+    border: 1px #ddd solid;
+  }
+  </style>
+</head>
+<body>
+  <div class="container flow-text">
+  <h1 id="hackathon-bitcoin-trading">Hackathon - Bitcoin Trading</h1>
+<p>Your mission is to build an automatic trading bot to buy and sell Bitcoins to
+maximize returns in a market. Your initial investment is $100,000.</p>
+<h2 id="market">Market</h2>
+<p>Suppose a hypothetical market for trading bitcoins is governed by the following
+principles:</p>
+<ul>
+<li>Only two currencies are available: bitcoins and USD.</li>
+<li>The price of a bitcoin is quoted in USD (e.g., 1 bitcoin = $1000 USD)</li>
+<li>The price of a bitcoin is influenced by certain words being said on Twitter.</li>
+<li>The price change does not happen immediately; it will take effect after 2 to 5 tweets</li>
+<li>When a word <em>x</em> is said, the price is changed by <em>d(x)</em>.</li>
+<li>Only these words matter:<ul>
+<li>game, news, money, fun, good, actor, news, movies, tech, music, people, apple, google</li>
+</ul>
+</li>
+</ul>
+<h2 id="bot">Bot</h2>
+<p><a href="bot.js">bot.js</a></p>
+<p>Your job is to implement the logic of this trading bot. This bot will
+observe the twitter stream and identify relevant keywords to make trading decision.
+There is only one decision to make—to trade or not to trade.</p>
+<p>Implement the function below in <code>bot.js</code>.</p>
+<pre><code>function decideWhetherOrNotToTrade(){
+  return Math.random() &lt; 0.1
+}
+</code></pre><p>The default logic of this function is to randomly decide to trade every one out
+of ten times. Replace the code with a more reasonable logic. You do know what
+keywords are influential. But you don’t know which are positive and which are
+negative. Your challenge is to guess or estimate them.</p>
+<h2 id="history-data">History Data</h2>
+<p><a href="history.html">history</a></p>
+<p>A history of about 10000 tweets and prices is provided for testing purposes.
+While you are developing the code for your bot, you can test its performance against
+this history data to see how much profit it wold have generated.</p>
+<h2 id="live-data">Live Data</h2>
+<p><a href="live.html">live</a></p>
+<p>Whenever you are ready, you can test your bot on the live streaming data.</p>
+<h2 id="contest">Contest</h2>
+<p>At the end of the hackathon, we will organize an informal contest to see whose
+bot is able to make the most profits on live data.</p>
+<h2 id="contributors">Contributors</h2>
+<p>The team members who contributed to this hackathon are:</p>
+<ul>
+<li>(Name)</li>
+<li>(Name)</li>
+<li>(Name)</li>
+<li>(Name)</li>
+<li>(Name)</li>
+<li>(Name)</li>
+</ul>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

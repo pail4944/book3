@@ -1,0 +1,327 @@
+<html>
+<head>
+    <style>
+        .answer {
+          min-height: 50px
+        }
+        .chart {
+          min-height: 400px
+        }
+    </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h3>Examples</h3>
+
+    <section id="e1" class="question">
+        <h4>What is the average stars of all businesses?</h4>
+        <div class="answer ct-double-octave"></div>
+    </section>
+
+    <section id="e2" class="question">
+        <h4>What is the most number of reviews received by a business?</h4>
+        <div class="answer ct-double-octave"></div>
+    </section>
+
+    <h3>Exercises</h3>
+
+    <section id="q1" class="question">
+        <h4>What is the relationship between review counts and stars?</h4>
+        <div class="answer chart"></div>
+    </section>
+
+    <section id="q2" class="question">
+        <h4>What is the relationship between review counts and stars? (same as question 1?)</h4>
+        <div class="answer chart"></div>
+    </section>
+
+    <section id="q3" class="question">
+        <h4>What is the distance (km) between the two McDonald's in the city of Gilbert?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q4" class="question">
+        <h4>What is the geographical center of all the McDonald's in the city of Phoenix?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q5" class="question">
+        <h4>In Phoenix, are there more McDonald's or Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q6" class="question">
+        <h4>In Phoenix, which Starbucks has the most number of reviews?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q7" class="question">
+        <h4>In Phoenix, which McDonald's is closest to this most-reviewed Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q8" class="question">
+        <h4>In Phoenix, how many coffee shops are within 2km of this most-reviewed Starbucks?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q9" class="question">
+        <h4>In Phoenix, which McDonald's is the furthest north, and which is the furthest south?</h4>
+        <div class="answer"></div>
+    </section>
+
+    <section id="q10" class="question">
+        <h4>In Phoenix, which McDonald's has no Starbucks located within 5 kms?</h4>
+        <div class="answer"></div>
+    </section>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist/0.9.4/chartist.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/1.0.0/simple_statistics.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.js"></script>
+    <script>
+
+var items   // global scope (i.e., can be accessed in javascript console)
+
+function example1(){
+  // http://simplestatistics.org/docs/#mean
+  var stars = _.pluck(items, 'stars')
+  return ss.mean(stars)
+}
+
+function example2(){
+  // http://simplestatistics.org/docs/#max
+  var stars = _.pluck(items, 'review_count')
+  return ss.max(stars)
+}
+
+function solution1(){
+    var reviews = _.pluck(items, 'review_count')
+    var stars = _.pluck(items, 'stars')
+    var data = {
+        xs: {
+            stars: 'stars_x'
+        },
+        columns: [
+            ["stars"].concat(stars),  // ["stars",2.5,2.5,3.5,3.5,2.5,4.5,4.5]
+            ["stars_x"].concat(reviews) // ["reviews",40,50,60,70,80,90,50]
+        ],
+        type: 'scatter'
+    }
+
+    var chart = c3.generate({
+      bindto: '#q1 .answer',
+      data: data,
+      axis: {
+          x: {
+              label: 'Reviews',
+               tick: {
+                // manually set tick values
+                values: [50,100,150,200,250,300,350,400,450, 500, 750, 1000, 1500]
+              }
+          },
+          y: {
+              label: 'Stars',
+              tick: {
+                // manually set tick values
+                values: [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5]
+              }
+          }
+      }
+    })
+}
+
+function solution3(){
+  var businessesInGilbert = _.filter(items, {city: 'Gilbert'})
+  var mcds = _.filter(businessesInGilbert, {name: "McDonald's"})
+  var coord1 = [mcds[0].longitude, mcds[0].latitude] 
+  var coord2 = [mcds[1].longitude, mcds[1].latitude] 
+  var distance = d3.geo.distance(coord1, coord2) * 6371
+  return distance
+}
+
+function solution4(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var mcds = _.filter(phoenix, {name: "McDonald's"})
+  var avglong = ss.mean(_.pluck(mcds, 'longitude'))
+  var avglat = ss.mean(_.pluck(mcds, 'latitude'))
+  return "Longitude: " + avglong + ", Latitude: " + avglat
+}
+
+function solution5(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var ms = []
+  _.forEach(phoenix, function(d){
+    if(d.name == "McDonald's"){
+      ms.push(0)
+    }
+    if(d.name == "Starbucks"){
+      ms.push(1)
+    }
+  })
+  var mode = ss.mode(ms)
+  if(mode == 0){
+    return "More McDonald's"
+  }
+  if(mode == 1){
+    return "More Starbucks"
+  }
+}
+
+function solution6(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var starbucks = _.filter(phoenix, {name: "Starbucks"})
+  var maxreviews = ss.max(_.pluck(starbucks, 'review_count'))
+  var address = ''
+  _.forEach(starbucks, function(d){
+    if(d.review_count == maxreviews){
+      address = d.full_address
+    }
+  })
+  return address
+}
+
+function solution7(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var starbucks = _.filter(phoenix, {name: "Starbucks"})
+  var maxreviews = ss.max(_.pluck(starbucks, 'review_count'))
+  var address = ''
+  var coordsb = []
+  _.forEach(starbucks, function(d){
+    if(d.review_count == maxreviews){
+      address = d.full_address
+      coordsb = [d.longitude, d.latitude]
+    }
+  })
+  var mcds = _.filter(phoenix, {name: "McDonald's"})
+  var mindistance = 1000
+  var minaddress = ''
+  _.forEach(mcds, function(d){
+    var coordmcds = [d.longitude, d.latitude] 
+    var distance = d3.geo.distance(coordsb, coordmcds) * 6371
+    if (distance < mindistance){
+      mindistance = distance
+      minaddress = d.full_address
+    }
+  })
+  return minaddress
+}
+
+function solution8(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var starbucks = _.filter(phoenix, {name: "Starbucks"})
+  var maxreviews = ss.max(_.pluck(starbucks, 'review_count'))
+  var address = ''
+  var coordsb = []
+  _.forEach(starbucks, function(d){
+    if(d.review_count == maxreviews){
+      address = d.full_address
+      coordsb = [d.longitude, d.latitude]
+    }
+  })
+  var coffee = _.filter(phoenix, function(d){
+    return _.includes(d.categories, 'Coffee & Tea')
+
+  })
+  var lessthan2km = []
+  _.forEach(coffee, function(d){
+    var coordcoffee = [d.longitude, d.latitude] 
+    var distance = d3.geo.distance(coordsb, coordcoffee) * 6371
+    if(distance < 2){
+      lessthan2km.push(d.full_address)
+    }
+  })
+  return lessthan2km.length
+}
+
+function solution9(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var mcds = _.filter(phoenix, {name: "McDonald's"})
+  var latitudes = _.pluck(mcds, 'latitude')
+  var minlat = ss.min(latitudes)
+  var maxlat = ss.max(latitudes)
+  var northmost = ''
+  var southmost = ''
+  _.forEach(mcds, function(d){
+    if(d.latitude == minlat){
+      southmost = d.full_address
+    }
+    else if(d.latitude == maxlat){
+      northmost = d.full_address
+    }
+  })
+  return "The northmost McDonald's is: " + northmost + ", and the southmost McDonald's is: " + southmost + '.'
+}
+
+function solution10(){
+  var phoenix = _.filter(items, {city: 'Phoenix'})
+  var starbucks = _.filter(phoenix, {name: "Starbucks"})
+  var mcds = _.filter(phoenix, {name: "McDonald's"})
+  var validmcds = []
+  _.forEach(mcds, function(d){
+    var coordmcd = [d.longitude, d.latitude]
+    var count = 0
+    _.forEach(starbucks, function(f){
+      var coordsb = [f.longitude, f.latitude]
+      var distance = d3.geo.distance(coordsb, coordmcd) * 6371
+      if (distance < 5){
+        count++
+      }
+    })
+    if(count == 0){
+      validmcds.push(d.full_address)
+    }
+  })
+  return validmcds.join(', ')
+}
+
+function run(id, solutionFunc, data){
+    console.log('run solution for ' + id)
+    var answer = solutionFunc(data)
+    $(id).find('.answer').html(answer)
+}
+
+function loadDataThenRunSolutions(){
+    $.get({url: 'http://bigdatahci2015.github.io/data/yelp/yelp_academic_dataset_business.5000.json.lines.txt'})
+     .done(function(data){
+         var lines = data.trim().split('\n')
+
+         // convert text lines to json arrays and save them in `items`
+         items = _.map(lines, JSON.parse)
+
+         console.log('number of items loaded:', items.length)
+         console.log('first item', items[0])
+
+         run('#e1', example1, items)
+         run('#e2', example2, items)
+         run('#q1', solution1, items)
+        //  run('#q2', solution2, items)
+         run('#q3', solution3, items)
+         run('#q4', solution4, items)
+         run('#q5', solution5, items)
+         run('#q6', solution6, items)
+         run('#q7', solution7, items)
+         run('#q8', solution8, items)
+         run('#q9', solution9, items)
+         run('#q10', solution10, items)
+     })
+     .fail(function(err){
+         console.error(err)
+     })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,163 @@
+<html>
+<head>
+  <title>Bitcoin Hackathon - Live</title>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 10px;
+          left: 0px;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #BBB;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #tweet {
+          height: 100px;
+        }
+        .event {
+          color: red;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:250px">
+    <div class="parallax">
+      <img src="bitcoin.jpg">
+      <h1 id="title">Should we buy or sell Bitcoins (Live)?
+        <div class="authors">by Parker Illig, Satchel Spencer</div>
+      </h1>
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+    <div id="tweet">
+    </div>
+    <div>
+      Current Price: 1 Bitcoin = <span id="price"></span> USD
+    </div>
+    <div>
+      Balance: <span id="balance"></span>
+    </div>
+    <h4>Last 10 trades</h4>
+    <div id="trades" class="col s10 collection">
+    </div>
+  </div>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+
+
+  <script src="bot.js"></script>
+
+  <script>
+
+// current bank account
+var bank = {
+  currency: 'USD',
+  balance: 100000
+}
+
+// create a firebase reference rooted at 'https://big-data-hci-hackathon.firebaseio.com/'
+var firebase = new Firebase('https://big-data-hci-hackathon.firebaseio.com/')
+
+// how many USD per bitcoin
+var price = null
+
+// sync with firebase's current tweet
+firebase
+  .child('bitcoin')
+  .child('tweet')
+  .on('value', function(snapshot){
+    // this function is invoked each time there's update on the value
+    var tweet = snapshot.val()
+    $('#tweet').html(tweet)
+    process(tweet)
+})
+
+// sync with firebase's bitcoin price info
+firebase
+  .child('bitcoin')
+  .child('price')
+  .on('value', function(snapshot){
+    // this function is invoked each time there's update on the value
+    price = snapshot.val()
+    $('#price').html(price)
+})
+
+function process(tweet){
+  if (decideWhetherOrNotToTrade(tweet)){
+    trade()
+  }
+  showBankBalanceInUSD()
+}
+
+function showBankBalanceInUSD(){
+  var prevBalance = Number($('#balance').text())
+  var balance = bank.currency == 'USD' ? bank.balance : bank.balance * price
+  balance = balance.toFixed(0)
+  if (balance > prevBalance)
+    $('#balance').html(balance).css('color','green')
+  else if (balance < prevBalance)
+    $('#balance').html(balance).css('color','red')
+}
+
+// trade all bitcoins for USD or vice versa
+function trade(){
+  if (!price) // if we don't have the price info yet, don't execute the trade
+    return
+
+  var description = ''
+  if (bank.currency === 'USD'){
+    // USD --> BITCOIN
+    bank.currency = 'BITCOIN'
+    bank.balance =  bank.balance * (1 / price)
+
+    description = 'USD -> BITCOIN: ' + bank.balance + ' BITCOIN'
+  } else {
+    // BITCOIN --> USD
+    bank.currency = 'USD'
+    bank.balance =  bank.balance * price
+
+    description = 'BITCOIN -> USD: ' + bank.balance + ' USD'
+  }
+
+  // create a DOM component to show the new trade
+  var newTradeHtml = '<div class="collection-item">' + description + '</div>'
+  // prepend to #trades
+  $('#trades').prepend(newTradeHtml)
+  var trades = $('#trades > div')
+  if (trades.length > 10){
+    trades.last().remove()
+  }
+}
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,237 @@
+<html>
+<head>
+    <style>
+        .map {
+          min-height: 300px
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Where should we build a new swimming pool?</h1>
+
+    <section id="candidates" class="question">
+        <h4>Where are the candidate locations?</h4>
+        <div class="map"></div>
+    </section>
+
+    <h2>Scores</h2>
+    <section id="features">
+    </section>
+
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+    <script src="http://bigdatahci2015.github.io/data/js/geolib.js"></script>
+
+    <script>
+
+//
+// Candidate Locations
+//
+
+function getCandidateLocations(n, p){
+  var locations = []
+  var lat = 33.45
+  var long = -112.03
+  for(i = 0; i < n; i++){
+    for(j = 0; j < p; j++){
+      locations.push({latitude: lat + (i*0.01), longitude: long- (j*0.01)})
+    }
+  }
+  return locations
+}
+
+
+//
+// Scoring Functions
+//
+
+function has_elementary_school_within_a_mile(loc){
+  var schools = _.filter(items, function(d){
+    return _.includes(d.categories, 'Elementary Schools')
+  })
+  var nearbyschools = _.filter(schools, function(d){
+    var loc2 = _.pick(d, ['latitude', 'longitude'])
+    var dis = geolib.getDistance(loc, loc2) 
+    return geolib.convertUnit('mi', dis) < 1 
+  })
+  return nearbyschools.length >= 1
+}
+
+function has_swimwear_within_a_mile(loc){
+ var swimwear = _.filter(items, function(d){
+   return _.includes(d.categories, 'Swimwear')
+ })
+ var nearbyswimwear= _.filter(swimwear, function(d){
+   var loc2 = _.pick(d, ['latitude', 'longitude'])
+   var dis = geolib.getDistance(loc, loc2) 
+   return geolib.convertUnit('mi', dis) < 1 
+ })
+ return nearbyswimwear.length >= 1
+}
+
+function has_hospital_within_half_a_mile(loc){
+  var hospital = _.filter(items, function(d){
+   return _.includes(d.categories, 'Hospitals')
+ })
+ var nearbyhospital= _.filter(hospital, function(d){
+   var loc2 = _.pick(d, ['latitude', 'longitude'])
+   var dis = geolib.getDistance(loc, loc2) 
+   return geolib.convertUnit('mi', dis) < 0.5 
+ })
+ return nearbyhospital.length >= 1
+}
+
+function has_ice_cream_within_half_a_mile(loc){
+  var icecream = _.filter(items, function(d){
+   return _.includes(d.categories, 'Ice Cream & Frozen Yogurt')
+ })
+ var nearbyicecream= _.filter(icecream, function(d){
+   var loc2 = _.pick(d, ['latitude', 'longitude'])
+   var dis = geolib.getDistance(loc, loc2) 
+   return geolib.convertUnit('mi', dis) < 0.5
+ })
+ return nearbyicecream.length >= 1
+}
+
+function has_tanning_within_half_a_mile(loc){
+ var tanning= _.filter(items, function(d){
+	return _.includes(d.categories, 'Tanning')
+ })
+ var nearbytanning= _.filter(tanning, function(d){
+   var loc2 = _.pick(d, ['latitude', 'longitude'])
+   var dis = geolib.getDistance(loc, loc2) 
+   return geolib.convertUnit('mi', dis) < 0.5 
+ })
+ return nearbytanning.length >= 1
+}
+
+//
+// Compute a score for a location using the provided scoring function 'scoreFunc'
+// and visualization function 'vizFunc'
+//
+function scoreAndVisualize(locs, scoreFunc, vizFunc){
+
+  console.time('scoring ' + scoreFunc.name)
+  var scores = _.map(locs, scoreFunc)
+  console.timeEnd('scoring ' + scoreFunc.name)
+
+  var title = _.startCase(scoreFunc.name)
+  var section = $('<section><h4>' + title + '</h4><div class="map"></div></section>').appendTo('#features')
+  var mapElement = $(section).find('.map')[0]
+  vizFunc(mapElement, locs, scores)
+}
+
+//
+// Visualization Functions
+//
+
+// visualize a list of locations on a map
+function visualize(domElement, locs){
+    var map = L.map(domElement).setView([33.45, -112.06], 13)
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'doubleshow.noeko77m',
+        accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWZ5Y3B1eTE1MHRidWRtMG9uZXluajg4In0.u5ONW27Ly5cU7M5KYi6Y9Q'
+    }).addTo(map)
+    map.touchZoom.disable()
+    map.doubleClickZoom.disable()
+    map.scrollWheelZoom.disable()
+
+    _.forEach(locs, function(loc){
+      var latlng = [loc.latitude, loc.longitude]
+      var circle = L.circle(latlng, 10, {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.5
+      }).addTo(map);
+    })
+}
+
+// visualize a list of locations on a map
+// represent each location's score using green (TRUE) or red (FALSE)
+function visualize_true_or_false(domElement, locs, scores){
+    var map = L.map(domElement).setView([33.45, -112.06], 13)
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a       href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'doubleshow.noeko77m',
+        accessToken: 'pk.eyJ1IjoiZG91Ymxlc2hvdyIsImEiOiJjaWZ5Y3B1eTE1MHRidWRtMG9uZXluajg4In0.u5ONW27Ly5cU7M5KYi6Y9Q'
+    }).addTo(map)
+    map.touchZoom.disable()
+    map.doubleClickZoom.disable()
+    map.scrollWheelZoom.disable()
+
+    _.forEach(locs, function(loc, i){
+
+      var latlng = [loc.latitude, loc.longitude]
+      var score = scores[i]
+
+      var color
+      if (score){
+        color = 'green'
+      } else {
+        color = 'red'
+      }
+      var circle = L.circle(latlng, 50, {
+          color: color,
+          fillColor: '#f03',
+          fillOpacity: 1
+      }).addTo(map);
+    })
+}
+
+var items = []
+function loadDataThenRunSolutions(){
+
+  var locs = getCandidateLocations(3, 6)
+  visualize($('#candidates .map')[0], locs)
+
+  $.get({url: 'http://bigdatahci2015.github.io/data/yelp/yelp_academic_dataset_business.phoenix.json.lines.txt'})
+   .done(function(data){
+      var lines = data.trim().split('\n')
+
+      // convert text lines to json arrays and save them in `items`
+      items = _.map(lines, JSON.parse)
+
+      // take only the last 2000 to speed up computation
+      // TODO: comment this out before the final submission
+      //items = _.takeRight(items, 2000)
+
+      console.log('number of items loaded:', items.length)
+      console.log('first item:', items[0])
+      console.log('reducing data set')
+      var middle = {latitude: _.sum(_.pluck(locs, 'latitude'))/(locs.length), longitude: _.sum(_.pluck(locs, 'longitude'))/(locs.length)}
+	  items =  _.filter(items, function(d) {
+				var loc2  = _.pick(d, ['latitude', 'longitude'])
+				var dis = geolib.getDistance(middle, loc2)
+				return geolib.convertUnit('mi', dis) < 5
+	  })
+	  console.log('number of items reduced to', items.length)
+      console.log('scoring all candidate locations')
+
+      scoreAndVisualize(locs, has_elementary_school_within_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_swimwear_within_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_hospital_within_half_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_ice_cream_within_half_a_mile, visualize_true_or_false)
+      scoreAndVisualize(locs, has_tanning_within_half_a_mile, visualize_true_or_false)
+
+   })
+   .fail(function(err){
+       console.error(err)
+   })
+}
+
+loadDataThenRunSolutions()
+
+    </script>
+</body>
+</html>

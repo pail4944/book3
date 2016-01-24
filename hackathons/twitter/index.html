@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+  <style>
+  ul li {
+      list-style-type: circle;
+      padding-left: 10px;
+      margin-left: 30px;
+  }
+  code {
+    border: 1px #ddd solid;
+  }
+  </style>
+</head>
+<body>
+  <div class="container flow-text">
+  <h1 id="hackathon-twitter-events">Hackathon - Twitter Events</h1>
+<p>You are tasked to watch the tweet stream to analyze what’s being said about
+Russia.</p>
+<h2 id="objective">Objective</h2>
+<p>Design and implement a set of event detection functions in <a href="team.html">team.html</a>.
+Each function takes an array of tweet objects as the input argument and performs
+some logic to decide whether certain interesting event has occurred. For instance.
+the function below triggers an event on every five tweets observed.</p>
+<pre><code>function has_observed_five_tweets(tweets){
+  if (tweets.length % 5 == 0) {
+    emit_event(&#39;has observed &#39; + tweets.length + &#39; tweets&#39;)
+  }
+}
+</code></pre><h2 id="technology">Technology</h2>
+<ul>
+<li>Real-time database (<a href="https://www.firebase.com/">https://www.firebase.com/</a>)</li>
+<li>Twitter streaming API</li>
+</ul>
+<h3 id="server">Server</h3>
+<p>A server process is tracking the Twitter stream using the keyword <em>Russia</em>. Every
+time it receives a new tweet, it writes the tweet to the following Firebase data
+location:</p>
+<p>  <a href="https://big-data-hci-hackathon.firebaseio.com/russia.json">https://big-data-hci-hackathon.firebaseio.com/russia.json</a></p>
+<p>The server code is already done.</p>
+<h3 id="client">Client</h3>
+<p>Meanwhile, each client in the browser (i.e., <a href="team.html">team.html</a>) subscribes
+to the <em>value</em> event at the same Firebase data location, using the code below.</p>
+<pre><code>firebase
+  .child(&#39;russia&#39;)
+  .on(&#39;value&#39;, function(snapshot){
+    // this function is invoked each time there&#39;s update on the value
+    var tweet = snapshot.val()
+    update(tweet)
+})
+</code></pre><p>Whenever there’s a change to this value, the callback function is invoked.
+Then, <code>update()</code> calls a series of event detection functions. If a specific
+event is detected, the event is pushed to the firebase at the location</p>
+<p>  <a href="https://big-data-hci-hackathon.firebaseio.com/events/team0.json">https://big-data-hci-hackathon.firebaseio.com/events/team0.json</a></p>
+<p>The code that achieves this is:</p>
+<pre><code>firebase
+  .child(&#39;events&#39;)
+  .child(TEAM_ID)
+  .push()
+  .set(event)
+</code></pre><h2 id="your-task">Your Task</h2>
+<p>Your task is to work on is <a href="team.html">team.html</a>.</p>
+<p>First, change <code>TEAM_ID</code> to match your team’s name so that your team can be
+uniquely identified.</p>
+<p>As warmup, implement the detector function</p>
+<pre><code>function has_observed_two_tweets_in_a_row_about_the_crash(){
+  // TODO
+}
+</code></pre><p>Then, as a team, come up with your own events and write detector functions for them.</p>
+<h2 id="all-teams">All Teams</h2>
+<p><a href="all.html">all.html</a> is a client page that monitors the events submitted
+by all teams. Use this page to look at whether your team’s events are posted
+correctly, and also what other teams are up to in real-time.</p>
+<h1 id="submission">Submission</h1>
+<h2 id="contributors">Contributors</h2>
+<p>The team members who contributed to this hackathon are:</p>
+<ul>
+<li>Parker Illig</li>
+<li>Kevin Gifford</li>
+<li>John Raesly</li>
+<li>Robert Kendl</li>
+<li>(Name)</li>
+<li>(Name)</li>
+</ul>
+<h2 id="grading">Grading</h2>
+<p>Each person must implement at least ONE detector function. It must be meaningful.</p>
+<h2 id="events">Events</h2>
+<p>Our team came up with the following interesting events:</p>
+<ol>
+<li><p>Has observed someone who hates Russia? contributed by Parker Illig</p>
+<p>In light of Russia’s recent moves into Syria and just general dislike of Russia in America/Western Europe, I am hoping to see a stream of people that publicly state their dislike for Russia/Putin.</p>
+</li>
+<li><p>Has observed …. ? contributed by (Name)</p>
+<p>(one sentence justification why this event is interesting)</p>
+</li>
+<li><p>Has observed …. ? contributed by (Name)</p>
+<p>(one sentence justification why this event is interesting)</p>
+</li>
+</ol>
+<p>(add more until you hit N where N is the number of people on your team)</p>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

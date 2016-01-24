@@ -1,0 +1,354 @@
+<html>
+<head>
+  <title>Google Book Words</title>
+    <style>
+        .answer {
+            min-height: 50px
+        }
+        section{
+          padding: 10px;
+          margin-bottom: 12px
+        }
+        #title {
+          position: absolute;
+          padding: 20px;
+          font-size: 64px;
+          font-weight: bolder;
+          color: white;
+          top: 50px;
+          left: 0px;
+          text-shadow: -2px 0 black, 0 2px black, 5px 0 black, 0 -2px black
+        }
+        #title .authors {
+          padding: 20px;
+          font-size: 32px;
+          font-weight: bolder;
+          color: #DDD;
+          text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black
+        }
+        #tweets {
+          min-height: 300px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/tomorrow.min.css">
+</head>
+<body>
+
+  <div class="parallax-container"  style="height:300px">
+    <div class="parallax">
+      <img src="http://res.cloudinary.com/craftml/image/upload/c_scale,e_brightness:-62,w_1000/v1447038536/books_nh4k05.jpg">
+      <h1 id="title">How did word usage change over time?
+        <div class="authors">by Parker Illig</div>
+      </h1>
+    </div>
+  </div>
+
+  <div class="section white container flow-text">
+      <div class="switch">
+        Source Code
+        <label>
+          <input type="checkbox">
+          <span class="lever"></span>
+        </label>
+      </div>
+
+      <div id="questions" class="col s10 collection">
+      </div>
+  </div>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+  <script>
+
+function toggleSourecode(){
+  $('pre').each(function(){
+    if ($(this).height()){
+        $(this).attr('data-height', $(this).height())
+        $(this).height(0)
+    } else {
+      $(this).height($(this).attr('data-height'))
+    }
+  })
+}
+$('.switch input').click(toggleSourecode)
+
+function csv2jsonArray(rawdata){
+  console.log('converting csv to json array')
+  var lines = rawdata.trim().split('\n')
+  var rows = _.rest(lines)
+  return _.map(rows, function(row){
+    var toks = row.split(',')
+    return {decade: toks[0], word: toks[1], rank: toks[2], count: toks[3]}
+    //
+    // return {decade:1900, word: 'the', count: 721149566}
+  })
+}
+
+var items
+$.ajax({url: 'https://big-data-hci-hackathon.firebaseapp.com/data/100yr_ngrams_10000.csv'})
+ .done(function(rawdata){
+
+  items = csv2jsonArray(rawdata)
+  console.log('number of items loaded:', items.length)
+  console.log('first item:', items[0])
+
+  analyze()
+
+ })
+ .fail(function(err){
+     console.error(err)
+ })
+
+function ask(text, func){
+  var answer = func(items)
+
+  // html element to display the answer
+  var answerHtml = '<div class="collection-item answer">' +
+      '<h4>' + text + '</h4>' +
+      '<div>' + answer + '</div>' +
+      '<pre><code>' + func.toString() + '</code></pre>' +
+    '</div>'
+
+  // append to #quetions
+  $('#questions').append(answerHtml)
+}
+
+function analyze(){
+  ask('how many decades in the dataset?', example)
+  ask('how does the word DATA change in popularity over the decades?', func1)
+  ask('in which decade was the term OIL most used?', func2)
+  ask('when did the word FEMINISM become popular?', func3)
+  ask('how does the word COMMUNISM change in popularity over time?', func4)
+  ask('what words were in fashion only in earlier decades?', func5)
+  ask('what words only came into fashion in recent decades?', func6)
+  ask('in the decade when the word Internet became popular for the first time, what other words also became popular for the first time?', func7)
+  ask('when did the word OIL become more popular than GOLD?', func8)
+  ask('what terms saw the biggest drop in popularity over the past century?', func9)
+
+  // HINT: This is a hard question.
+  // One possible algorithm is to first encode the changes as a binary string
+  // For example, war => 100111001, where 1 means UP, 0 means down.
+  // Then identify those with the exact encoding.
+  ask('what terms are most similar to the term WAR in terms of the changes in popularity?', func10)
+
+  $('pre code').each(function(i, block) {
+    hljs.highlightBlock(block);
+  })
+  toggleSourecode()
+}
+
+function example(){
+  return _.unique(_.pluck(items, 'decade')).length
+}
+
+function func1(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'data')
+  })
+  var change = [filtered[0].decade + ': started at rank ' + filtered[0].rank]
+  for(var i = 0; i < (filtered.length-1); i++){
+    if(parseInt(filtered[i].rank) < parseInt(filtered[i+1].rank)){
+      change.push(filtered[i+1].decade + ': down to ' + filtered[i+1].rank)
+    }
+    else{
+      change.push(filtered[i+1].decade + ': up to ' + filtered[i+1].rank)
+    }
+  }
+  return change.join('....')
+}
+
+function func2(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'oil')
+  })
+  var max = _.min(_.pluck(filtered, 'rank'))
+  var decade = ''
+  _.forEach(filtered, function(d){
+    if(d.rank == max){
+      decade = d.decade  
+    }
+  })
+  return decade
+}
+
+function func3(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'feminism')
+  })
+  var max = _.min(_.pluck(filtered, 'rank'))
+  var decade = ''
+  _.forEach(filtered, function(d){
+    if(d.rank == max){
+      decade = d.decade  
+    }
+  })
+  var first = _.first(_.pluck(filtered, 'decade'))
+  return 'First popular in ' + first + ' and had a maximum rank in ' + decade + '.'
+}
+
+function func4(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'communism')
+  })
+  var change = [filtered[0].decade + ': started at rank ' + filtered[0].rank]
+  for(var i = 0; i < (filtered.length-1); i++){
+    if(parseInt(filtered[i].rank) < parseInt(filtered[i+1].rank)){
+      change.push(filtered[i+1].decade + ': down to ' + filtered[i+1].rank)
+    }
+    else{
+      change.push(filtered[i+1].decade + ': up to ' + filtered[i+1].rank)
+    }
+  }
+  return change.join('....')
+}
+
+function func5(){
+  var groups = _.groupBy(items, function(d){
+    return d.word
+  })
+  var map = _.mapValues(groups, function(d){
+    return _.pluck(d, 'decade')
+  })
+  var filtered = _.filter(_.pairs(map), function(d){
+    return !(_.size(d[1]) > 4) //max number of decades a legal word can possibly be in
+  })
+  var words = []
+  _.forEach(filtered, function(d){
+    if((_.includes(d[1], '1900') || _.includes(d[1], '1910') || _.includes(d[1], '1920') || _.includes(d[1], '1930')) && !(_.includes(d[1], '1940') || _.includes(d[1], '1950') || _.includes(d[1], '1960') || _.includes(d[1], '1970') || _.includes(d[1], '1980') || _.includes(d[1], '1990') || _.includes(d[1], '2000'))){
+      words.push(d[0])
+    }
+  })
+  return 'Words unique to 1900-1930: ' + words.join(', ')
+}
+
+function func6(){
+  var groups = _.groupBy(items, function(d){
+    return d.word
+  })
+  var map = _.mapValues(groups, function(d){
+    return _.pluck(d, 'decade')
+  })
+  var filtered = _.filter(_.pairs(map), function(d){
+    return !(_.size(d[1]) > 4) //max number of decades a legal word can possibly be in
+  })
+  var words = []
+  _.forEach(filtered, function(d){
+    if((_.includes(d[1], '1970') || _.includes(d[1], '1980') || _.includes(d[1], '1990') || _.includes(d[1], '2000')) && !(_.includes(d[1], '1900') || _.includes(d[1], '1910') || _.includes(d[1], '1920') || _.includes(d[1], '1930') || _.includes(d[1], '1940') || _.includes(d[1], '1950') || _.includes(d[1], '1960'))){
+      words.push(d[0]) //same idea as previous just swapped conditionals
+    }
+  })
+
+  return 'Words unique to 1970-2000: ' + words.join(', ')
+}
+function func7(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'internet')
+  })
+  var decade = _.first(_.pluck(filtered,  'decade'))
+  var groups = _.groupBy(items, function(d){
+    return d.word
+  })
+  var map = _.mapValues(groups, function(d){
+    return _.pluck(d, 'decade')
+  })
+  var words = []
+  _.forEach(_.pairs(map), function(d){
+    if(_.first(d[1]) == decade){
+      words.push(d[0])
+    }
+  })
+  return words.join(', ')
+}
+
+function func8(){
+  var oil = _.pairs(_.filter(items, function(d){
+    return (d.word == 'oil')
+  }))
+  var gold = _.pairs(_.filter(items, function(d){
+    return (d.word == 'gold')
+  }))
+  var decades = []
+  for(var i = 0; i < oil.length; i++){
+    if(parseInt(gold[i][1].rank) > parseInt(oil[i][1].rank)){ //having really strange interaction between the ranks at 1900, says 556 is greater than 1136, had to change i to start at 1 to go over 1900, had to parseint ??
+      decades.push(gold[i][1].decade)
+    }
+  }
+  return _.first(decades)
+}
+
+function func9(){
+  var words = _.filter(items, function(d){
+    return (d.decade == '1900' || d.decade == '2000')
+  })
+  var groups = _.groupBy(words, function(d){
+    return d.word
+  })
+  groups = _.mapValues(groups, function(d){
+    var rank = _.pluck(d, 'rank')
+    var diff = 0
+    if(parseInt(rank[1])>parseInt(rank[0])){ // only do the calculation in cases where it has dropped in rank
+      var diff = parseInt(rank[1])-parseInt(rank[0])
+    }
+    return diff
+  })
+  var pairs = _.pairs(groups)
+  return _.take(_.sortBy(pairs, function(d){
+    return d[1]
+  }).reverse(), 10).join(', ') //top 10
+}
+
+function func10(){
+  var filtered = _.filter(items, function(d){
+    return (d.word == 'war')
+  })
+  var rankch = _.pluck(filtered, 'rank')
+  var i = 0
+  var change = ''
+  for(var i = 0; i < (rankch.length-1); i++){
+    if(parseInt(rankch[i]) < parseInt(rankch[i+1])){
+      change += '0'
+    }
+    else{
+      change += '1'
+    }
+  }
+  var all =_.groupBy(items, function(d){
+    return d.word
+  })
+  all = _.mapValues(all, function(d){
+    var ranks = _.pluck(d, 'rank')
+    var string = ''
+    for(var i = 0; i < (ranks.length-1); i++){
+      if(parseInt(ranks[i]) < parseInt(ranks[i+1])){
+        string += '0'
+      }
+      else{
+        string += '1'
+      }
+    }
+    return string
+  })
+  var words = []
+  _.forEach(_.pairs(all), function(d){
+    if(d[1] == change){
+      words.push(d[0])
+    }
+  })
+  return words.join(', ')
+}
+
+// initialize the parallax effect
+$(document).ready(function(){
+    $('.parallax').parallax()
+})
+
+    </script>
+
+</body>
+</html>

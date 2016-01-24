@@ -1,0 +1,116 @@
+<html>
+<head>
+  <title>Twitter Events - All Teams</title>
+    <style>
+        .events {
+          height: 500px;
+          overflow: auto;
+        }
+        .event {
+          border: 1px solid #eee;
+          padding: 2px;
+        }
+        .date{
+          font-size: 10px;
+        }
+        .message{
+          font-size: 14px;
+        }
+        #tweet {
+          height: 100px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/css/materialize.min.css">
+</head>
+<body>
+
+  <div class="section white flow-text">
+    <div id="tweet" class="container"></div>
+    <div id="teams"></div>
+  </div>
+
+  <script id="teams-template" type="text/x-handlebars-template">
+    <div class="row">
+    {{#each teams}}
+      <div id={{name}} class="team col s2">
+        <b>{{name}}</b>
+        <div class="events">
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </script>
+
+  <script id="event-template"  type="text/x-handlebars-template">
+    <div class="event collection-item">
+      <div class="date">
+        {{createdAt}}
+      </div>
+      <div class="message">
+        {{message}}
+      </div>
+    </div>
+  </script>
+
+  <script src="https://cdn.firebase.com/js/client/2.3.1/firebase.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.4/handlebars.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.1/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+  <script>
+
+var teams = [
+  {name: 'team0'},
+  {name: 'team1'},
+  {name: 'team2'},
+  {name: 'team3'},
+  {name: 'team4'},
+  {name: 'team5'}
+]
+
+var template = Handlebars.compile($("#teams-template").html())
+$('#teams').html(template({teams: teams}))
+
+var eventTemplate = Handlebars.compile($("#event-template").html())
+
+// create a firebase reference rooted at 'https://big-data-hci-hackathon.firebaseio.com/'
+var firebase = new Firebase('https://big-data-hci-hackathon.firebaseio.com/')
+
+// for each team
+_.forEach(_.pluck(teams, 'name'), function(team){
+
+  // register a callback on the "child_added" event for the team
+  firebase
+    .child('events')
+    .child(team)  // e.g., events/team0
+    .orderByChild('createdAt')  // sort by createdAt
+    .limitToLast(10)  // limit to the last ten
+    .on('child_added', function(snapshot){
+      var event = snapshot.val()
+      event.createdAt = new Date(event.createdAt) // 1403143150 --> Date
+
+      // create a new DOM element to show the event
+      var eventElement = $(eventTemplate(event))
+      $('#' + team).find('.events').prepend(eventElement)
+      eventElement.hide().toggle('highlight')
+
+    })
+
+})
+
+// observe the most current tweet
+firebase
+  .child('russia')
+  .on('value', function(snapshot){
+    // this function is invoked each time there's update on the value
+    var tweet = snapshot.val()
+    $('#tweet').html(tweet.text)
+})
+
+    </script>
+
+</body>
+</html>
