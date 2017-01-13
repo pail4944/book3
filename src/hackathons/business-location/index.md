@@ -62,7 +62,7 @@ The team members who contributed to this hackathon are:
 
 * [William Farmer](http://github.com/willzfarmer)
 * [Kevin Gifford](http://github.com/kevinkgifford)
-* [Parker Illig](http://github.com/pillig
+* [Parker Illig](http://github.com/pillig)
 * [Robert Kendl](http://github.com/DomoYeti)
 * [Andrew Krodinger](http://github.com/drewdinger)
 * [John Raesly](http://github.com/jraesly)
@@ -72,15 +72,15 @@ The team members who contributed to this hackathon are:
 
 Our team came up with the following relevant questions:
 
-1. Are there any elementary schools within 2 km radius?? contributed by ([Parker Illig](http://github.com/pillig)
+1. Are there any elementary schools within 2 km radius?? contributed by ([Parker Illig](http://github.com/pillig))
 
   (one sentence justification why this question is important)
 
-2. Are there any preschools within a 2 km radius?? contributed by ([Parker Illig](http://github.com/pillig)
+2. Are there any preschools within a 2 km radius?? contributed by ([Parker Illig](http://github.com/pillig))
 
-3. Are there any zoo's in a 5 km radius?? contributed by ([Parker Illig](http://github.com/pillig)
+3. Are there any zoo's in a 5 km radius?? contributed by ([Parker Illig](http://github.com/pillig))
 
-4. Are there any Adult entertainment stores nearby?? contributed by ([Parker Illig](http://github.com/pillig)
+4. Are there any Adult entertainment stores nearby?? contributed by ([Parker Illig](http://github.com/pillig))
 
 5. Is there a Starbucks within 2 km?? contributed by ([Kevin Gifford](http://github.com/kevinkgifford))
 
@@ -118,4 +118,3 @@ Our team came up with the following relevant questions:
 ### Conclusion
 
 1 = 2 = 3 (7 points) > 6 (5 points) > 4 = 5 (4 points)
-    
